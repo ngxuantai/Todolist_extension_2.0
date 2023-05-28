@@ -8,8 +8,7 @@ connectionDB();
 app.use (express.json());
 app.use (cors());
 
-app.use ("/todos", todoRouter);
+app.use ("api/todos", todoRouter);
 
-const port = 3000;
-console.log(port);
-app.listen (port, () => console.log( 'Listening on port ${port}... '));
+const port = 8080;
+app.listen (port, () => console.log( `Listening on port ${port}... `));
