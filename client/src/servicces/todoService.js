@@ -1,6 +1,6 @@
 import axois from 'axios';
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'http://localhost:5000/api';
 
 export function getTodos() {
     return axois.get(API_URL + '/todos');

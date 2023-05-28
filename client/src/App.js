@@ -47,7 +47,7 @@ class App extends Todos {
                         {todos.map((todo) => (
                             <Paper
                                 key={todo._id}
-                                className="flex task_container"
+                                className="flex todo_container"
                             >
                                 <Checkbox
                                     checked={todo.completed}
@@ -62,6 +62,15 @@ class App extends Todos {
                                     }
                                 >
                                     {todo.task}
+                                </div>
+                                <div
+                                    className={
+                                        todo.completed
+                                            ? "todo line_through"
+                                            : "todo"
+                                    }
+                                >
+                                    {todo.description}
                                 </div>
                                 <Button
                                     onClick={() => this.handleDelete(todo._id)}

@@ -25,7 +25,8 @@ router.put("/:id", async (req, res) => {
     try {
         const todo = await Todo.findOneAndUpdate(
             {_id: req.params.id },
-            req.body
+            req.body, 
+            {new: true}
         )
         res.send(todo);
     } catch (error) {

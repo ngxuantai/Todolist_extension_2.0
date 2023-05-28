@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import { getTodos, addTodo, updateTodo, deleteTodo } from './servicces/todoService';
 
 class Todos extends Component {
-    state = { todos: [], currentTodo: '' };
+    state = { todos: [], currentTodo: ''};
   
     async componentDidMount() {
         try {
             const { data } = await getTodos();
             this.setState({ todos: data });
+            console.log(data);
         } catch (error) {
             console.log(error);
         }
@@ -23,7 +24,7 @@ class Todos extends Component {
         try {
             const { data } = await addTodo({
                 task: this.state.currentTodo,
-                description: this.state.currentTodo,
+                description: this.state.currentTodo + " description",
             });
             const todos = originalTodos;
             todos.push(data);
@@ -37,11 +38,11 @@ class Todos extends Component {
         const originalTodos = this.state.todos;
         try {
             const todos = [...originalTodos];
-            const index = todos.findIndex((todo) => todo._id === currentTodo._id);
-            todos[index] = { ...currentTodo };
+            const index = todos.findIndex((todo) => todo._id === currentTodo);
+            todos[index] = { ...todos[index] };
             todos[index].completed = !todos[index].completed;
             this.setState({ todos });
-            await updateTodo (currentTodo._id, todos[index]);
+            await updateTodo (currentTodo, todos[index]);
         } catch (error) {
             console.log(error);
             this.setState({ todos: originalTodos });
@@ -51,9 +52,9 @@ class Todos extends Component {
     handleDelete = async (currentTodo) => {
         const originalTodos = this.state.todos;
         try {
-            const todos = originalTodos.filter((todo) => todo._id !== currentTodo._id);
+            const todos = originalTodos.filter((todo) => todo._id !== currentTodo);
             this.setState({ todos });
-            await deleteTodo (currentTodo._id);
+            await deleteTodo (currentTodo);
         } catch (error) {
             console.log(error);
             this.setState({ todos: originalTodos });
