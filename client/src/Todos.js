@@ -1,65 +1,74 @@
-import React, { Component } from 'react';
-import { getTodos, addTodo, updateTodo, deleteTodo } from './servicces/todoService';
+import React, {Component} from "react";
+import {
+  getTodos,
+  addTodo,
+  updateTodo,
+  deleteTodo,
+} from "./servicces/todoService";
 
 class Todos extends Component {
-    state = { todos: [], currentTodo: ''};
-  
-    async componentDidMount() {
-        try {
-            const { data } = await getTodos();
-            this.setState({ todos: data });
-            console.log(data);
-        } catch (error) {
-            console.log(error);
-        }
+  state = {todos: [], currentId: "", currentTask: "", currentDescription: ""};
+
+  async componentDidMount() {
+    try {
+      const {data} = await getTodos();
+      this.setState({todos: data});
+      console.log(data);
+    } catch (error) {
+      console.log(error);
     }
+  }
 
-    handleChange = ({ currentTarget: input }) => {
-        this.setState({ currentTodo: input.value });
-    };
+  handleChangeTask = ({currentTarget: input}) => {
+    this.setState({currentTask: input.value});
+  };
 
-    handleSubmit = async (event) => {
-        event.preventDefault();
-        const originalTodos = this.state.todos;
-        try {
-            const { data } = await addTodo({
-                task: this.state.currentTodo,
-                description: this.state.currentTodo + " description",
-            });
-            const todos = originalTodos;
-            todos.push(data);
-            this.setState({ todos, currentTodo: '' });
-        } catch (error) {
-            console.log(error);
-        }
-    };
+  handleChangeDes = ({currentTarget: input}) => {
+    this.setState({currentDescription: input.value});
+  };
 
-    handleUpdate = async (currentTodo) => {
-        const originalTodos = this.state.todos;
-        try {
-            const todos = [...originalTodos];
-            const index = todos.findIndex((todo) => todo._id === currentTodo);
-            todos[index] = { ...todos[index] };
-            todos[index].completed = !todos[index].completed;
-            this.setState({ todos });
-            await updateTodo (currentTodo, todos[index]);
-        } catch (error) {
-            console.log(error);
-            this.setState({ todos: originalTodos });
-        }
-    };
+  handleSubmit = async (event) => {
+    event.preventDefault();
+    const originalTodos = this.state.todos;
+    try {
+      const {data} = await addTodo({
+        task: this.state.currentTask,
+        description: this.state.currentDescription,
+      });
+      const todos = originalTodos;
+      todos.push(data);
+      this.setState({todos, currentTask: "", currentDescription: ""});
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-    handleDelete = async (currentTodo) => {
-        const originalTodos = this.state.todos;
-        try {
-            const todos = originalTodos.filter((todo) => todo._id !== currentTodo);
-            this.setState({ todos });
-            await deleteTodo (currentTodo);
-        } catch (error) {
-            console.log(error);
-            this.setState({ todos: originalTodos });
-        }
-    };
+  handleUpdate = async (currentId) => {
+    const originalTodos = this.state.todos;
+    try {
+      const todos = [...originalTodos];
+      const index = todos.findIndex((todo) => todo._id === currentId);
+      todos[index] = {...todos[index]};
+      todos[index].completed = !todos[index].completed;
+      this.setState({todos});
+      await updateTodo(currentId, todos[index]);
+    } catch (error) {
+      console.log(error);
+      this.setState({todos: originalTodos});
+    }
+  };
+
+  handleDelete = async (currentTodo) => {
+    const originalTodos = this.state.todos;
+    try {
+      const todos = originalTodos.filter((todo) => todo._id !== currentTodo);
+      this.setState({todos});
+      await deleteTodo(currentTodo);
+    } catch (error) {
+      console.log(error);
+      this.setState({todos: originalTodos});
+    }
+  };
 }
 
 export default Todos;
