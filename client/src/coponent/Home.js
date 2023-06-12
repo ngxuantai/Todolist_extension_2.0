@@ -1,25 +1,25 @@
 import React from "react";
 import "../css/App.css";
 import Todos from "../Todos";
-import { Paper, TextField, Checkbox, Button } from "@material-ui/core";
+import {Paper, TextField, Checkbox, Button} from "@material-ui/core";
 
 class Home extends Todos {
-  state = { todos: [], currentTask: "", currentDescription: "" };
+  state = {todos: [], currentTask: "", currentDescription: ""};
   render() {
-    const { todos } = this.state;
+    const {todos} = this.state;
     return (
-      <div className="App">
+      <div className="App" style={{marginTop: "60px"}}>
         <Paper elevation={10} className="container">
           <div className="heading">Todo_list</div>
           <form
             onSubmit={this.handleSubmit}
             className="flex flex_column"
-            style={{ margin: "15px 0" }}
+            style={{margin: "15px 0"}}
           >
             <TextField
               variant="outlined"
               size="samll"
-              style={{ width: "80%", margin: "8px" }}
+              style={{width: "80%", margin: "8px"}}
               value={this.state.currentTask}
               required={true}
               onChange={this.handleChangeTask}
@@ -28,7 +28,7 @@ class Home extends Todos {
             <TextField
               variant="outlined"
               size="samll"
-              style={{ width: "80%", margin: "8px" }}
+              style={{width: "80%", margin: "8px"}}
               value={this.state.currentDescription}
               required={true}
               onChange={this.handleChangeDes}
@@ -36,7 +36,7 @@ class Home extends Todos {
             />
             <Button
               className="addbtn"
-              style={{ height: "100%", margin: "8px", float: "right" }}
+              style={{height: "100%", margin: "8px", float: "right"}}
               color="primary"
               variant="outlined"
               type="submit"
