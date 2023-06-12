@@ -17,8 +17,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
 }
+
+.space_between {
+  justify-content: flex-end;
+}
+
+/* .addbtn {
+  justify-content: space-between;
+  align-items: right;
+} */
 
 .container {
   width: 400px;

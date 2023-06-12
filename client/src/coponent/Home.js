@@ -1,9 +1,9 @@
-// import "./App.css";
 import React from "react";
-import Todos from "./Todos";
+import "../css/App.css";
+import Todos from "../Todos";
 import { Paper, TextField, Checkbox, Button } from "@material-ui/core";
 
-class App extends Todos {
+class Home extends Todos {
   state = { todos: [], currentTask: "", currentDescription: "" };
   render() {
     const { todos } = this.state;
@@ -19,7 +19,7 @@ class App extends Todos {
             <TextField
               variant="outlined"
               size="samll"
-              style={{ width: "80%" }}
+              style={{ width: "80%", margin: "8px" }}
               value={this.state.currentTask}
               required={true}
               onChange={this.handleChangeTask}
@@ -28,14 +28,15 @@ class App extends Todos {
             <TextField
               variant="outlined"
               size="samll"
-              style={{ width: "80%" }}
+              style={{ width: "80%", margin: "8px" }}
               value={this.state.currentDescription}
               required={true}
               onChange={this.handleChangeDes}
               placeholder="Add description"
             />
             <Button
-              style={{ height: "100%" }}
+              className="addbtn"
+              style={{ height: "100%", margin: "8px", float: "right" }}
               color="primary"
               variant="outlined"
               type="submit"
@@ -72,4 +73,4 @@ class App extends Todos {
   }
 }
 
-export default App;
+export default Home;
