@@ -3,6 +3,10 @@ import React, {Component} from "react";
 class Logins extends Component {
   state = {link: "", username: "", password: "", showForm: false};
 
+  handleChangeLink = (event) => {
+    this.setState({link: event.target.value});
+  };
+
   handleChangeUsername = (event) => {
     this.setState({username: event.target.value});
   };
@@ -20,6 +24,10 @@ class Logins extends Component {
     this.setState((prevState) => ({
       showForm: !prevState.showForm,
     }));
+  };
+
+  handleHideForm = () => {
+    this.setState({showForm: false});
   };
 }
 
