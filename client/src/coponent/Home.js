@@ -18,7 +18,7 @@ class Home extends Todos {
           >
             <TextField
               variant="outlined"
-              size="samll"
+              size="small"
               style={{width: "80%", margin: "8px"}}
               value={this.state.currentTask}
               required={true}
@@ -27,7 +27,7 @@ class Home extends Todos {
             />
             <TextField
               variant="outlined"
-              size="samll"
+              size="small"
               style={{width: "80%", margin: "8px"}}
               value={this.state.currentDescription}
               required={true}

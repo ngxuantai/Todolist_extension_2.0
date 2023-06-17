@@ -8,7 +8,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 const Navbar = () => {
   return (
     <Router>
-      <nav class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top">
+      <nav
+        class="navbar navbar-expand-sm navbar-dark bg-dark fixed-top"
+        style={{width: "400px"}}
+      >
         <div class="container-fluid">
           <a class="navbar-brand">TodoList</a>
           <div class="collapse navbar-collapse" id="mynavbar">
