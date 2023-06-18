@@ -1,9 +1,28 @@
 import React, {Component} from "react";
+import {getLink, addLink} from "./servicces/linkService";
+import axios from "axios";
+
+function isValidLink(link) {
+  const urlPattern =
+    /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/;
+  return urlPattern.test(link);
+}
 
 class Logins extends Component {
-  state = {link: "", username: "", password: "", showForm: false};
+  state = {
+    link: "",
+    username: "",
+    password: "",
+    showForm: false,
+    linkError: false,
+  };
 
   handleChangeLink = (event) => {
+    if (isValidLink(event.target.value)) {
+      this.setState({linkError: false});
+    } else {
+      this.setState({linkError: true});
+    }
     this.setState({link: event.target.value});
   };
 
@@ -17,7 +36,20 @@ class Logins extends Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    // Your login logic here
+    try {
+      if (isValidLink(this.state.link)) {
+        const {data} = addLink({
+          link: this.state.link,
+          username: this.state.username,
+          password: this.state.password,
+        });
+        this.setState({link: "", username: "", password: "", showForm: false});
+      } else {
+        this.setState({linkError: true});
+      }
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   handleToggleForm = () => {

@@ -20,6 +20,9 @@ exports.getLink = async (req, res) => {
 
 exports.deleteLink = async (req, res) => {
   try {
-    const link = await Link.findByIdAndDelete(req.params.id);
-  } catch (error) {}
+    await Link.deleteMany({});
+    res.send("sucess");
+  } catch (error) {
+    res.send(error);
+  }
 };
