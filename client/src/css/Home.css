@@ -1,0 +1,96 @@
+.App {
+  width: 400px;
+  height: 600px;
+}
+
+.heading {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+
+}
+
+.flex_column{
+  flex-direction: column;
+}
+
+.flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.space_between {
+  justify-content: flex-end;
+}
+
+ .addbtn {
+  border : 4px solid #323232;
+  border-radius: 5px;
+  box-shadow: 4px 4px #323232;
+  font-size: 15px;
+  font-weight: bold;
+  color: #323232;
+  padding: 5px 15px;
+} 
+
+.addbtn:active{
+  box-shadow: 0px 0px #323232;
+  transform: translate(3px, 3px);
+}
+
+.container {
+  width: 400px;
+  max-height: 600px;
+  padding: 10px;
+}
+
+.container input{
+  height: 50px;
+  width: 80%;
+  margin: 8px;
+  background-color: white;
+  border : 2px solid #323232;
+  border-radius: 5px;
+  box-shadow: 4px 4px #323232;
+  font-size: 15px;
+  font-weight: bold;
+  color: #323232;
+  padding: 5px 15px;
+}
+
+.container input::placeholder{
+  color: #666;
+  opacity: 0.8;
+}
+
+.todo_container {
+  margin: 0px 0;
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 0.1fr 2.8fr 0.1fr; 
+  gap: 10px; 
+  border: 1px solid #323232;
+}
+
+/* .checkbox{
+  flex-grow: 1;
+}  */
+
+.todo {
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+.line_through {
+  text-decoration: line-through;
+}
+
+.task {
+  font-size: 18px;
+}
+
+.description{
+  font-size: 15px;
+  color: #666;
+}
