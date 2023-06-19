@@ -1,14 +1,14 @@
-const connectionDB = require('./db');
-const cors = require ("cors");
-const express = require ("express");
+const connectionDB = require("./db");
+const cors = require("cors");
+const express = require("express");
 const app = express();
-const todoRouter = require ("./routes/todosRouter");
+const router = require("./routes");
 
 connectionDB();
-app.use (express.json());
-app.use (cors());
+app.use(express.json());
+app.use(cors());
 
-app.use ("/api/todos", todoRouter);
+app.use("/", router);
 
 const port = 5000;
-app.listen (port, () => console.log( `Listening on port ${port}... `));
+app.listen(port, () => console.log(`Listening on port ${port}... `));

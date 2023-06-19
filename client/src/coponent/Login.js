@@ -8,7 +8,7 @@ class Login extends Logins {
   render() {
     const {link, username, password, showForm} = this.state;
     return (
-      <div className="App" style={{marginTop: "60px"}}>
+      <div className="App" style={{marginTop: "50px"}}>
         <Paper
           elevation={10}
           className="login-container"
@@ -17,11 +17,7 @@ class Login extends Logins {
           {showForm && (
             <div className="form-overlay">
               <form onSubmit={this.handleSubmit} className="login-form">
-                <Button
-                  className="close-button"
-                  style={{height: "100%", margin: "8px"}}
-                  onClick={this.handleHideForm}
-                >
+                <Button className="close-button" onClick={this.handleHideForm}>
                   X
                 </Button>
                 <TextField

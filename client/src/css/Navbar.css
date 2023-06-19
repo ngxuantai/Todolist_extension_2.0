@@ -1,0 +1,10 @@
+.navbar-brand {
+  margin: 10px;
+}
+
+.navbar-link {
+  text-decoration: none;
+  color: #fff;
+  margin: 10px;
+  list-style-type: none;
+}

@@ -1,5 +1,54 @@
 .App {
   width: 400px;
+  height: 500px;
+}
+
+.heading {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.flex_column {
+  flex-direction: column;
+}
+
+.flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.space_between {
+  justify-content: flex-end;
+}
+
+.home-container {
+  width: 400px;
+  height: 500px;
+  padding: 10px;
+}
+
+.scroll-container {
+  max-height: calc(100vh - 250px);
+  overflow: auto;
+}
+
+.todo_container {
+  margin: 10px 0;
+  cursor: pointer;
+}
+
+.todo {
+  flex-grow: 1;
+  margin-left: 10px;
+}
+
+.line_through {
+  text-decoration: line-through;
+}
+.App {
+  width: 400px;
   height: 600px;
 }
 

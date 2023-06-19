@@ -1,5 +1,5 @@
 import React from "react";
-import "../css/App.css";
+import "../css/Home.css";
 import Todos from "../Todos";
 import {Paper, TextField, Checkbox, Button} from "@material-ui/core";
 
@@ -8,8 +8,8 @@ class Home extends Todos {
   render() {
     const {todos} = this.state;
     return (
-      <div className="App" style={{marginTop: "60px"}}>
-        <Paper elevation={10} className="container" style={{backgroundColor: "lightgrey"}}>
+      <div className="App" style={{marginTop: "50px"}}>
+        <Paper elevation={10} className="home-container" style={{backgroundColor: "lightgrey"}}>
           <div className="heading">TodoList</div>
           <form
             onSubmit={this.handleSubmit}
@@ -44,7 +44,7 @@ class Home extends Todos {
               Add Todo
             </Button>
           </form>
-          <div>
+          <div className="scroll-container">
             {todos.map((todo) => (
               <Paper key={todo._id} className="flex todo_container">
                 <Checkbox
@@ -72,6 +72,25 @@ class Home extends Todos {
                   delete
                 </Button>
               </Paper>
+              // <Paper key={todo._id} className="flex todo_container">
+              //   <Checkbox
+              //     checked={todo.completed}
+              //     onClick={() => this.handleUpdate(todo._id)}
+              //     color="primary"
+              //   />
+              //   <div className={todo.completed ? "todo line_through" : "todo"}>
+              //     {todo.task}
+              //   </div>
+              //   <div className={todo.completed ? "todo line_through" : "todo"}>
+              //     {todo.description}
+              //   </div>
+              //   <Button
+              //     onClick={() => this.handleDelete(todo._id)}
+              //     color="secondary"
+              //   >
+              //     delete
+              //   </Button>
+              // </Paper>
             ))}
           </div>
         </Paper>
