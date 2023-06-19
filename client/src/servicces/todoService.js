@@ -1,31 +1,19 @@
-import axois from 'axios';
+import axois from "axios";
 
-const API_URL = 'http://localhost:5000/api';
+const API_URL = "http://localhost:5000";
 
 export function getTodos() {
-    return axois.get(API_URL + '/todos');
-};
+  return axois.get(API_URL + "/todos");
+}
 
 export function addTodo(todo) {
-    return axois.post(API_URL + '/todos', todo);
-};
+  return axois.post(API_URL + "/todos", todo);
+}
 
-export function updateTodo (id, todo) {
-    return axois.put(API_URL + '/todos/' + id, todo);
-};
+export function updateTodo(id, todo) {
+  return axois.put(API_URL + "/todos/" + id, todo);
+}
 
-export function deleteTodo (id) {
-    return axois.delete(API_URL + '/todos/' + id);
-};
-
-// export const addTodo = async (todo) => {
-//     return await axois.post(API_URL + '/todos', todo);
-// };
-
-// export const updateTodo = async (id, todo) => {
-//     return await axois.put(API_URL + '/todos/' + id, todo);
-// };
-
-// export const deleteTodo = async (id) => {
-//     return await axois.delete(API_URL + '/todos/' + id);
-// };
+export function deleteTodo(id) {
+  return axois.delete(API_URL + "/todos/" + id);
+}

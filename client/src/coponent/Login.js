@@ -4,9 +4,15 @@ import Logins from "../Auth";
 import "../css/Login.css";
 
 class Login extends Logins {
-  state = {link: "", username: "", password: "", showForm: false};
+  state = {
+    link: "",
+    username: "",
+    password: "",
+    showForm: false,
+    linkError: false,
+  };
   render() {
-    const {link, username, password, showForm} = this.state;
+    const {link, username, password, showForm, linkError} = this.state;
     return (
       <div className="App" style={{marginTop: "50px"}}>
         <Paper
@@ -25,8 +31,10 @@ class Login extends Logins {
                   style={{width: "80%", margin: "8px"}}
                   value={link}
                   required={true}
-                  onChange={this.handleChangeUsername}
+                  onChange={this.handleChangeLink}
                   placeholder="Link"
+                  error={linkError}
+                  helperText={linkError ? "Please enter a valid link" : ""}
                 />
                 <TextField
                   variant="outlined"
@@ -50,7 +58,7 @@ class Login extends Logins {
                   variant="outlined"
                   type="submit"
                 >
-                  Login
+                  Lấy dữ liệu
                 </Button>
               </form>
             </div>
@@ -62,7 +70,7 @@ class Login extends Logins {
               variant="outlined"
               onClick={this.handleToggleForm}
             >
-              Lấy dữ liệu
+              Đăng nhập
             </Button>
           )}
         </Paper>
