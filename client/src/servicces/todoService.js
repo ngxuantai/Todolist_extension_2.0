@@ -2,8 +2,8 @@ import axois from "axios";
 
 const API_URL = "http://localhost:5000";
 
-export function getTodos() {
-  return axois.get(API_URL + "/todos");
+export function getTodos(queryParams) {
+  return axois.get(API_URL + "/todos", {params: queryParams});
 }
 
 export function addTodo(todo) {

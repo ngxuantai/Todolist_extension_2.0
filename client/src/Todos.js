@@ -7,11 +7,20 @@ import {
 } from "./servicces/todoService";
 
 class Todos extends Component {
-  state = {todos: [], currentId: "", currentTask: "", currentDescription: ""};
+  state = {
+    todos: [],
+    currentId: "",
+    currentTask: "",
+    currentDescription: "",
+    currentDeadline: "",
+  };
 
   async componentDidMount() {
     try {
-      const {data} = await getTodos();
+      const queryParams = {
+        type: "normal",
+      };
+      const {data} = await getTodos(queryParams);
       this.setState({todos: data});
       console.log(data);
     } catch (error) {
@@ -27,17 +36,28 @@ class Todos extends Component {
     this.setState({currentDescription: input.value});
   };
 
+  handleChangeDeadline = ({currentTarget: input}) => {
+    this.setState({currentDeadline: input.value});
+  };
+
   handleSubmit = async (event) => {
     event.preventDefault();
     const originalTodos = this.state.todos;
     try {
       const {data} = await addTodo({
+        type: "normal",
         task: this.state.currentTask,
         description: this.state.currentDescription,
+        deadline: this.state.currentDeadline,
       });
       const todos = originalTodos;
       todos.push(data);
-      this.setState({todos, currentTask: "", currentDescription: ""});
+      this.setState({
+        todos,
+        currentTask: "",
+        currentDescription: "",
+        currentDeadline: "",
+      });
     } catch (error) {
       console.log(error);
     }

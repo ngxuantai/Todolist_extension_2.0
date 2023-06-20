@@ -11,7 +11,12 @@ exports.postTodo = async (req, res) => {
 
 exports.getTodos = async (req, res) => {
   try {
-    const todos = await Todo.find();
+    const {type} = req.query;
+    const condition = {};
+    if (type !== undefined) {
+      condition.type = type;
+    }
+    const todos = await Todo.find(condition);
     res.send(todos);
   } catch (error) {
     res.send(error);
