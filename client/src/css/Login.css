@@ -5,6 +5,12 @@
   align-items: center;
 }
 
+.heading {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
 .form-overlay {
   position: absolute;
   top: 0;
@@ -17,10 +23,10 @@
 }
 
 .login-form {
-  width: 90%;
+  width: 100%;
   position: relative;
   z-index: 2;
-  background-color: #ffffff;
+  background-color: #ffffff; /* Màu trắng */
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -28,17 +34,62 @@
 }
 
 .close-button {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  font-size: 16px;
-  padding: 5px;
-  border: none;
-  background-color: #ff0000; /* Màu đỏ */
-  color: #ffffff; /* Màu chữ trắng */
+  position: inline;
+  width: 100px;
+  height: 50px;
+  margin: 8px 8px 8px 35px;
+  background-color: white;
+  border: 2px solid #323232;
+  border-radius: 5px;
+  box-shadow: 4px 4px #323232;
+  font-size: 15px;
+  font-weight: bold;
+  color: #323232;
   cursor: pointer;
 }
 
 .close-button:hover {
-  background-color: #cc0000; /* Màu đỏ nhạt */
+  background-color: red;
+  color: #ffffff;
+}
+
+.close-button:active {
+  box-shadow: 0px 0px #323232;
+  transform: translate(3px, 3px);
+}
+
+.login-form input {
+  width: 80%;
+  height: 50px;
+  margin: 8px;
+  background-color: white;
+  border: 2px solid #323232;
+  border-radius: 5px;
+  box-shadow: 4px 4px #323232;
+  font-size: 15px;
+  font-weight: bold;
+  color: #323232;
+  padding: 5px 15px;
+}
+.login-button {
+  position: inline;
+  width: 100px;
+  height: 50px;
+  margin: 8px;
+  background-color: white;
+  border: 2px solid #323232;
+  border-radius: 5px;
+  box-shadow: 4px 4px #323232;
+  font-size: 15px;
+  font-weight: bold;
+  color: #323232;
+}
+
+.login-button:hover {
+  background-color: #ede9e5;
+}
+
+.login-button:active {
+  box-shadow: 0px 0px #323232;
+  transform: translate(3px, 3px);
 }
