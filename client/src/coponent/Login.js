@@ -23,12 +23,8 @@ class Login extends Logins {
           {showForm && (
             <div className="form-overlay">
               <form onSubmit={this.handleSubmit} className="login-form">
-                <Button className="close-button" onClick={this.handleHideForm}>
-                  X
-                </Button>
-                <TextField
-                  variant="outlined"
-                  style={{width: "80%", margin: "8px"}}
+                <div className="heading">Login</div>
+                <input
                   value={link}
                   required={true}
                   onChange={this.handleChangeLink}
@@ -36,30 +32,34 @@ class Login extends Logins {
                   error={linkError}
                   helperText={linkError ? "Please enter a valid link" : ""}
                 />
-                <TextField
-                  variant="outlined"
-                  style={{width: "80%", margin: "8px"}}
+                <input
                   value={username}
                   required={true}
                   onChange={this.handleChangeUsername}
                   placeholder="Username"
                 />
-                <TextField
-                  variant="outlined"
-                  style={{width: "80%", margin: "8px"}}
+                <input
+                  type="password"
                   value={password}
                   required={true}
                   onChange={this.handleChangePassword}
                   placeholder="Password"
                 />
-                <Button
-                  style={{height: "100%", margin: "8px"}}
-                  color="primary"
-                  variant="outlined"
-                  type="submit"
-                >
-                  Lấy dữ liệu
-                </Button>
+                <div className="button-container">
+                  <button
+                    className="login-button"
+                    type="submit"
+                    variant="outlined"
+                  >
+                    Lấy dữ liệu
+                  </button>
+                  <button 
+                    className="close-button" 
+                    onClick={this.handleHideForm}
+                    >
+                    Đóng 
+                  </button>
+                </div>                
               </form>
             </div>
           )}
