@@ -2,7 +2,9 @@ import React from "react";
 import "../css/Home.css";
 import Todos from "../Todos";
 import moment from "moment";
-import {Paper, Checkbox, Button} from "@material-ui/core";
+import {Paper, Checkbox, IconButton} from "@material-ui/core";
+import {Delete, CalendarToday} from "@material-ui/icons";
+
 
 class Home extends Todos {
   state = {
@@ -46,14 +48,14 @@ class Home extends Todos {
               value={this.state.currentDeadline}
               onChange={this.handleChangeDeadline}
             />
-            <Button
+            <button
               className="addbtn"
               variant="outlined"
               style={{margin: "8px", backgroundColor: "white"}}
               type="submit"
             >
               Add Todo
-            </Button>
+            </button>
           </form>
           <div className="scroll-container">
             {todos.map((todo) => (
@@ -87,17 +89,18 @@ class Home extends Todos {
                         ? "todo line_through deadline"
                         : "todo deadline"
                     }
-                  >
+                  >      
+                    <CalendarToday style={{fontSize : '15px', margin: '0px 5px 5px 0px'}}/>   
                     {moment(todo.deadline).format("hh:mm DD MMM")}
                   </div>
                 </div>
 
-                <Button
+                <IconButton
                   onClick={() => this.handleDelete(todo._id)}
-                  color="secondary"
+                  color="secondary"                  
                 >
-                  delete
-                </Button>
+                  <Delete/>
+                </IconButton>
               </Paper>
             ))}
           </div>
