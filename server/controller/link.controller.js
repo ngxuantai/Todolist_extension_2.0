@@ -1,151 +1,290 @@
 const Link = require("../model/link");
 const Todo = require("../model/todos");
 const puppeteer = require("puppeteer");
+const axios = require("axios");
+const moment = require("moment");
+const fs = require('fs');
+const { promisify } = require('util');
+
+const filePath = "calendar.ics";
+const readFileAsync = promisify(fs.readFile);
+
+function parseICalData(icsData) {
+  const lines = icsData.split("\n");
+
+  const Todos = [];
+  let currentTodo = {};
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+
+    if (line.startsWith("BEGIN:VEVENT")) {
+      currentTodo = {};
+    } else if (line.startsWith("END:VEVENT")) {
+      Todos.push(currentTodo);
+    } else if (line.startsWith("SUMMARY:")) {
+      currentTodo.task = line.substring("SUMMARY:".length);
+    } else if (line.startsWith("DESCRIPTION:")) {
+      let description = line.substring("DESCRIPTION:".length);
+      i++;
+      while (!lines[i].startsWith("CLASS:")) {
+        description += lines[i].trim();
+        i++;
+      }
+      currentTodo.description = formatDescription(description);
+    } else if (line.startsWith("CATEGORIES:")) {
+      currentTodo.category = line.substring("CATEGORIES:".length);
+    } else if (line.startsWith("DTEND:")) {
+      currentTodo.deadline = line.substring("DTEND:".length);
+    }
+  }
+
+  return Todos;
+}
+
+function formatDescription(description) {
+  description = description
+    .replace(/\\n\\n/g, '. ') // Thay thế '\n\n' liên tiếp thành '. '
+    .replace(/\\n/g, '. ') // Thay thế '\n' bằng '. '
+    .replace(/\\+/g, '') // Xóa dấu '\'
+    .replace(/\.+/g, '.') // Xóa các dấu '.' liên tục thành 1 dấu '.'
+    .replace(/\=+/g, '') // Xóa các dấu '=' liên tục
+    .trim() // Loại bỏ kí tự trắng từ đầu và cuối chuỗi
+    .replace(/^\.*/, ''); // Xóa các dấu '.' từ đầu chuỗi
+  return description;
+}
+
+getTodosFromUrl = async (url) => {
+  let Todos = [];
+  axios
+    .get(url, { responseType: 'stream' })
+    .then(response => {
+      response.data.pipe(fs.createWriteStream(filePath));
+      console.log("Đã tải tệp .ics thành công");
+      readFileAsync(filePath, 'utf8')
+      .then(data => {
+        Todos = parseICalData(data);
+        // In danh sách todos
+        Todos.forEach(async (todo) => {
+          // console.log("Task:", todo.task);
+          // console.log("Description:", todo.description);
+          // console.log("Category:", todo.category);
+          const deadline = moment(todo.deadline, "YYYYMMDDTHHmmssZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ");
+          // console.log("Deadline:", todo.deadline.trim());
+          // console.log("Deadline:", deadline);
+          // console.log(typeof todo.deadline);
+          // console.log("---");
+          try {
+            await new Todo({
+              type: "uit",
+              task: todo.task,
+              description: todo.description.toString() || " ",
+              category: todo.category,
+              deadline: deadline,
+            }).save();
+          } catch (error) {
+            console.log(error);
+          }
+        });
+        return Todos;
+      })
+      .catch(err => {
+        console.error("Đã xảy ra lỗi khi đọc tệp .ics:", err);
+      });
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+};
 
 const getData = async (link) => {
+  // const browser = await puppeteer.launch({
+  //   headless: true,
+  //   args: ["--disable-web-security", "--disable-features=IsolateOrigins"],
+  // });
+  // const page = await browser.newPage();
+
+  // try {
+  //   await page.goto("https://courses.uit.edu.vn/login/index.php");
+
+  //   await page.type("#username", link.username);
+  //   await page.type("#password", link.password);
+  //   await page.click("#loginbtn");
+
+  //   await page.waitForNavigation();
+
+  //   const isErrorMessageDisplayed = await page.evaluate(() => {
+  //     const div = document.querySelector(
+  //       'div.alert.alert-danger[role="alert"]'
+  //     );
+  //     return div !== null;
+  //   });
+
+  //   if (isErrorMessageDisplayed) {
+  //     console.log("Đăng nhập sai, xin vui lòng thử lại");
+  //     return "fail";
+  //   } else {
+  //     // Đi tới trang chứa lịch
+  //     await page.waitForSelector("span.current");
+  //     await page.evaluate(() => {
+  //       const link = document.querySelector("span.current a");
+  //       link.click();
+  //     });
+  //     await page.waitForNavigation();
+  //     const btnSecondarys = await page.$$eval(
+  //       ".btn.btn-secondary",
+  //       (btnSecondarys) => {
+  //         return btnSecondarys.map((button) => button.textContent);
+  //       }
+  //     );
+  //     const exCalenBtnId = btnSecondarys.findIndex(
+  //       (text) => text === "Xuất lịch biểu"
+  //     );
+  //     if (exCalenBtnId !== -1) {
+  //       const exCalenBtn = await page.$$(".btn.btn-secondary");
+  //       await exCalenBtn[exCalenBtnId].click();
+  //       await page.waitForNavigation();
+  //     } else {
+  //       console.log("Không tìm thấy button Xuất lịch biểu");
+  //     }
+  //     // Chọn radio Tất cả sự kiện
+  //     const radioInputs = await page.$$("input.form-check-input");
+  //     for (const input of radioInputs) {
+  //       const value = await page.evaluate((el) => el.value, input);
+  //       if (value === "all") {
+  //         await input.click();
+  //       }
+  //       if (value === "recentupcoming") {
+  //         await input.click();
+  //       }
+  //     }
+  //     // Click nút Xuất
+  //     const submitInputs = await page.$$eval(
+  //       ".btn.btn-primary",
+  //       (submitInputs) => {
+  //         return submitInputs.map((input) => input.value);
+  //       }
+  //     );
+  //     const subInputId = submitInputs.findIndex(
+  //       (text) => text === "Lấy địa chỉ mạng của lịch"
+  //     );
+  //     if (subInputId !== -1) {
+  //       const subInput = await page.$$(".btn.btn-primary");
+  //       await subInput[subInputId].click();
+  //       await page.waitForNavigation();
+  //     }
+  //     const content = await page.evaluate(() => {
+  //       const div = document.querySelector(".generalbox.calendarurl");
+  //       return div.textContent;
+  //     });
+  //     const url = content.substring("URL Lịch: ".length);
+  //     getTodosFromUrl(url);
+  //     return "success";
+  //   }
+  // } catch (error) {
+  //   console.log(error);
+  //   return "fail";
+  // } finally {
+  //   await browser.close();
+  // }
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--disable-web-security", "--disable-features=IsolateOrigins"],
-  }); // Khởi tạo trình duyệt
-  const page = await browser.newPage(); // Tạo trang mới
-
-  // Đi tới trang đăng nhập
-  await page.goto("https://courses.uit.edu.vn/login/index.php");
-
-  // Nhập tài khoản và mật khẩu vào form đăng nhập
-  await page.type("#username", "20520744");
-  await page.type("#password", "1446079619");
-
-  // Click nút đăng nhập
-  await page.click("#loginbtn");
-
-  // Chờ trang tải xong và đăng nhập thành công
-  await page.waitForNavigation();
-
-  console.log("Đăng nhập thành công!");
-
-  // Đi tới trang chứa lịch
-  await page.waitForSelector("span.current");
-  await page.evaluate(() => {
-    const link = document.querySelector("span.current a");
-    link.click();
   });
-  await page.waitForNavigation();
-
-  const scrollCount = 3;
-  for (let i = 0; i < scrollCount; i++) {
-    await page.evaluate(() => {
-      window.scrollBy(0, window.innerHeight);
+  const page = await browser.newPage();
+  
+  try {
+    await page.goto("https://courses.uit.edu.vn/login/index.php");
+  
+    await page.type("#username", link.username);
+    await page.type("#password", link.password);
+    await Promise.all([
+      page.click("#loginbtn"),
+      page.waitForNavigation()
+    ]);
+  
+    const isErrorMessageDisplayed = await page.evaluate(() => {
+      const div = document.querySelector('div.alert.alert-danger[role="alert"]');
+      return div !== null;
     });
-    await page.waitForTimeout(1000); // Đợi một khoảng thời gian trước khi cuộn tiếp (tùy chọn)
-  }
-
-  // C1: Lấy danh sách các ô trong lịch nhưng bị timeout
-  // // Lấy danh sách các ô trong lịch
-  // const calendarCells = await page.$$('.calendar_event_course a');
-
-  // // Lặp qua từng ô và in ra nội dung thẻ "a" nếu có
-  // for (const cell of calendarCells) {
-  //     const text = await page.evaluate(element => element.innerText, cell);
-  //     console.log(text);
-  // }
-
-  // C2: Lấy danh sách các ô trong lịch bằng button Xuất lịch biểu
-  // Click nút Xuất lịch biểu
-  const btnSecondarys = await page.$$eval(
-    ".btn.btn-secondary",
-    (btnSecondarys) => {
-      return btnSecondarys.map((button) => button.textContent);
+  
+    if (isErrorMessageDisplayed) {
+      console.log("Đăng nhập sai, xin vui lòng thử lại");
+      return "fail";
     }
-  );
-
-  const exCalenBtnId = btnSecondarys.findIndex(
-    (text) => text === "Xuất lịch biểu"
-  );
-  if (exCalenBtnId !== -1) {
-    const exCalenBtn = await page.$$(".btn.btn-secondary");
-    await exCalenBtn[exCalenBtnId].click();
-    console.log("Đã click nút Xuất lịch biểu");
-    await page.waitForNavigation();
-    console.log("Đã chuyển trang");
-    await page.screenshot({path: "1.png"});
-    // await page.waitForTimeout(60000);
-    await page.screenshot({path: "2.png"});
-  } else {
-    console.log("Không tìm thấy button Xuất lịch biểu");
-  }
-
-  // Chọn radio Tất cả sự kiện
-  const radioInputs = await page.$$("input.form-check-input");
-  for (const input of radioInputs) {
-    const value = await page.evaluate((el) => el.value, input);
-    if (value === "all") {
-      await input.click();
-      await page.screenshot({path: "3.png"});
+  
+    // Đi tới trang chứa lịch
+    await Promise.all([
+      page.waitForSelector("span.current"),
+      page.evaluate(() => {
+        const link = document.querySelector("span.current a");
+        link.click();
+      }),
+      page.waitForNavigation()
+    ]);
+  
+    const btnSecondarys = await page.$$eval(".btn.btn-secondary", (buttons) =>
+      buttons.map((button) => button.textContent)
+    );
+  
+    const exCalenBtnId = btnSecondarys.findIndex((text) => text === "Xuất lịch biểu");
+    if (exCalenBtnId !== -1) {
+      const exCalenBtn = await page.$$(".btn.btn-secondary");
+      await Promise.all([
+        exCalenBtn[exCalenBtnId].click(),
+        page.waitForNavigation()
+      ]);
+    } else {
+      console.log("Không tìm thấy button Xuất lịch biểu");
     }
-    if (value === "recentupcoming") {
-      await input.click();
-      await page.screenshot({path: "4.png"});
+  
+    // Chọn radio Tất cả sự kiện
+    const radioInputs = await page.$$("input.form-check-input");
+    for (const input of radioInputs) {
+      const value = await page.evaluate((el) => el.value, input);
+      if (value === "all" || value === "recentupcoming") {
+        await input.click();
+      }
     }
-  }
-
-  // Click nút Xuất
-  const submitInputs = await page.$$eval(".btn.btn-primary", (submitInputs) => {
-    return submitInputs.map((input) => input.value);
-  });
-
-  const subInputId = submitInputs.findIndex(
-    (text) => text === "Lấy địa chỉ mạng của lịch"
-  );
-  if (subInputId !== -1) {
-    const subInput = await page.$$(".btn.btn-primary");
-    await subInput[subInputId].click();
-    console.log("Đã click nút Xuất");
-    await page.screenshot({path: "5.png"});
-    await page.waitForNavigation();
-    // await page.waitForTimeout(100000);
-    for (let i = 0; i < scrollCount; i++) {
-      await page.evaluate(() => {
-        window.scrollBy(0, window.innerHeight);
-      });
-      await page.waitForTimeout(1000); // Đợi một khoảng thời gian trước khi cuộn tiếp (tùy chọn)
+  
+    // Click nút Xuất
+    const submitInputs = await page.$$eval(".btn.btn-primary", (inputs) =>
+      inputs.map((input) => input.value)
+    );
+    const subInputId = submitInputs.findIndex((text) => text === "Lấy địa chỉ mạng của lịch");
+    if (subInputId !== -1) {
+      const subInput = await page.$$(".btn.btn-primary");
+      await Promise.all([
+        subInput[subInputId].click(),
+        page.waitForNavigation()
+      ]);
     }
-    // await page.waitForSelector('.generalbox.calendarurl');
-    await page.screenshot({path: "6.png"});
-  }
-
-  const content = await page.evaluate(() => {
-    const div = document.querySelector(".generalbox.calendarurl");
-    return div.textContent;
-  });
-  const url = content.substring("URL Lịch: ".length);
-  console.log(url);
-
-  // Điều hướng đến URL chứa tệp .ics
-  await page.goto(url);
-
-  // Intercept the response to save it to a file
-  page.on("response", async (response) => {
-    const url = response.url();
-    if (
-      url ===
-      "https://courses.uit.edu.vn/calendar/export_execute.php?userid=14076&authtoken=261228f85deb582ef59a5271c2f75039a87154ff&preset_what=all&preset_time=recentupcoming"
-    ) {
-      const buffer = await response.buffer();
-      await require("fs").writeFileSync("calendar.ics", buffer);
-      console.log("File saved successfully!");
-    }
-  });
-
-  await browser.close(); // Đóng trình duyệt
+  
+    const content = await page.evaluate(() => {
+      const div = document.querySelector(".generalbox.calendarurl");
+      return div.textContent;
+    });
+    const url = content.substring("URL Lịch: ".length);
+    getTodosFromUrl(url);
+    // console.log(url);
+    return "success";
+  } catch (error) {
+    console.log(error);
+    return "fail";
+  } finally {
+    await browser.close();
+  }  
 };
 
 exports.postLink = async (req, res) => {
   try {
-    const link = await new Link(req.body).save();
-    console.log(link);
-    await getData(link);
-    res.send(link);
+    const link = req.body;
+    const result = await getData(link);
+    // if (result === "success") {
+    //   await link.save();
+    // }
+    // res.send({data: result});
+    res.send({data});
   } catch (error) {
     res.send(error);
   }

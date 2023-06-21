@@ -1,0 +1,63 @@
+BEGIN:VCALENDAR
+METHOD:PUBLISH
+PRODID:-//Moodle Pty Ltd//NONSGML Moodle Version 2021051702.01//EN
+VERSION:2.0
+BEGIN:VEVENT
+UID:63160@courses.uit.edu.vn
+SUMMARY:BÀI NỘP ĐỒ ÁN NHÓM tới hạn
+DESCRIPTION:
+CLASS:PUBLIC
+LAST-MODIFIED:20230615T011227Z
+DTSTAMP:20230621T110504Z
+DTSTART:20230620T060000Z
+DTEND:20230620T060000Z
+CATEGORIES:IS216.N23
+END:VEVENT
+BEGIN:VEVENT
+UID:64419@courses.uit.edu.vn
+SUMMARY:Nộp Bài tập 3 tới hạn
+DESCRIPTION:SV nộp file text hoặc ảnh:\n\n	* 8 BÀI TẬP ỨNG DỤNG trong slide
+	 BAO ĐÓNG - TÌM KHÓA - BÀI TOÁN THÀNH VIÊN - PHỦ VÀ SỰ TƯƠNG ĐƯƠNG\n	* Các 
+	câu hỏi liên quan nội dung buổi học trong 2 ĐỀ THI KHÓA TRƯỚC (THAM KHẢO) \
+	n\nHạn nộp: 23G59' ngày 21/06/2023\n
+	
+CLASS:PUBLIC
+LAST-MODIFIED:20230614T185014Z
+DTSTAMP:20230621T110504Z
+DTSTART:20230621T165900Z
+DTEND:20230621T165900Z
+CATEGORIES:SE332.N21
+END:VEVENT
+BEGIN:VEVENT
+UID:59789@courses.uit.edu.vn
+SUMMARY:Nộp đồ án (50%) tới hạn
+DESCRIPTION:Thời gian báo cáo cuối kỳ: tiết 12345 ngày 23/06/2023 tại B3.12
+	\n\nNhóm sinh viên có tham gia báo cáo cuối kỳ\, quay màn hình trong suốt q
+	uá trình báo cáo. Upload và nộp lại link video tại đây.\n\nFile txt\, đặt t
+	ên Nhom<STTNhom>\, trong file chứa link dẫn đến video\n\nVD: Nhom01.txt\n
+	
+CLASS:PUBLIC
+LAST-MODIFIED:20230316T023608Z
+DTSTAMP:20230621T110504Z
+DTSTART:20230623T100000Z
+DTEND:20230623T100000Z
+CATEGORIES:SE102.N21
+END:VEVENT
+BEGIN:VEVENT
+UID:62740@courses.uit.edu.vn
+SUMMARY:Nộp file nén sản phẩm đề tài Seminar tới hạn
+DESCRIPTION:===============================================================
+	=======================\nSau khi thuyết trình\, các nhóm UPLOAD FILE NÉN SẢ
+	N PHẨM ĐỀ TÀI SEMINAR tại đây.\n\nFile nén upload phải đặt tên theo định dạ
+	ng là: STTNhóm_HọTênNhómTrưởng.rar\, bao gồm file thuyết trình *.pdf và sản
+	 phẩm demo.\n\nVD: N1_TranNguyenTienNam.rar\n==============================
+	=======================================================\n
+	
+CLASS:PUBLIC
+LAST-MODIFIED:20230614T185014Z
+DTSTAMP:20230621T110504Z
+DTSTART:20230802T165900Z
+DTEND:20230802T165900Z
+CATEGORIES:SE332.N21
+END:VEVENT
+END:VCALENDAR
