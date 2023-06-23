@@ -54,16 +54,19 @@ function formatDescription(description) {
   return description;
 }
 
-getTodosFromUrl = async (url) => {
+async function getTodosFromUrl(url) {
   let Todos = [];
+  let success = false;
+  let promises = [];
   axios
     .get(url, {responseType: 'stream'})
     .then((response) => {
       response.data.pipe(fs.createWriteStream(filePath));
       console.log('Đã tải tệp .ics thành công');
       readFileAsync(filePath, 'utf8')
-        .then((data) => {
+        .then(async (data) => {
           Todos = parseICalData(data);
+          await Todo.deleteMany({type: 'uit'});
           // In danh sách todos
           Todos.forEach(async (todo) => {
             // console.log("Task:", todo.task);
@@ -76,19 +79,37 @@ getTodosFromUrl = async (url) => {
             // console.log("Deadline:", deadline);
             // console.log(typeof todo.deadline);
             // console.log("---");
-            try {
-              await new Todo({
-                type: 'uit',
-                task: todo.task,
-                description: todo.description.toString() || ' ',
-                category: todo.category,
-                deadline: deadline,
-              }).save();
-            } catch (error) {
-              console.log(error);
-            }
+            const promise = new Todo({
+              type: 'uit',
+              task: todo.task,
+              description: todo.description.toString() || ' ',
+              category: todo.category,
+              deadline: deadline,
+            }).save();
+            promises.push(promise); // Thêm promise vào mảng
+            // try {
+            //   await new Todo({
+            //     type: 'uit',
+            //     task: todo.task,
+            //     description: todo.description.toString() || ' ',
+            //     category: todo.category,
+            //     deadline: deadline,
+            //   }).save();
+            // } catch (error) {
+            //   console.log(error);
+            // }
           });
-          return Todos;
+          Promise.all(promises)
+            .then(() => {
+              // Tất cả các promise đã hoàn thành
+              if (promises.length === Todos.length) {
+                success = true;
+              }
+              console.log('Tất cả các todo đã được lưu thành công.');
+            })
+            .catch((error) => {
+              console.log('Đã xảy ra lỗi khi lưu todo:', error);
+            });
         })
         .catch((err) => {
           console.error('Đã xảy ra lỗi khi đọc tệp .ics:', err);
@@ -97,7 +118,8 @@ getTodosFromUrl = async (url) => {
     .catch((error) => {
       console.error(error);
     });
-};
+  return success;
+}
 
 const getData = async (link) => {
   // const browser = await puppeteer.launch({
@@ -211,7 +233,7 @@ const getData = async (link) => {
 
     if (isErrorMessageDisplayed) {
       console.log('Đăng nhập sai, xin vui lòng thử lại');
-      return 'fail';
+      return 'login-fail';
     }
 
     // Đi tới trang chứa lịch
@@ -270,9 +292,10 @@ const getData = async (link) => {
       return div.textContent;
     });
     const url = content.substring('URL Lịch: '.length);
-    getTodosFromUrl(url);
-    // console.log(url);
-    return 'success';
+    const success = getTodosFromUrl(url);
+    if (success) {
+      return 'success';
+    }
   } catch (error) {
     console.log(error);
     return 'fail';
@@ -285,13 +308,17 @@ exports.postLink = async (req, res) => {
   try {
     const link = req.body;
     const result = await getData(link);
-    // if (result === "success") {
-    //   await link.save();
-    // }
-    // res.send({data: result});
-    res.send({data});
+    if (result === 'success') {
+      console.log('success');
+      await Link(link).save();
+    }
+    return res.json({
+      data: {
+        result: result,
+      },
+    });
   } catch (error) {
-    res.send(error);
+    res.status(500).json({message: 'Internal server error'});
   }
 };
 
