@@ -1,24 +1,27 @@
-import React, {Component} from "react";
+import React, {Component} from 'react';
 import {
   getTodos,
   addTodo,
+  getTodoById,
   updateTodo,
   deleteTodo,
-} from "./servicces/todoService";
+} from './servicces/todoService';
 
 class Todos extends Component {
   state = {
     todos: [],
-    currentId: "",
-    currentTask: "",
-    currentDescription: "",
-    currentDeadline: "",
+    currentId: '',
+    currentTask: '',
+    currentDescription: '',
+    currentDeadline: '',
+    selectedId: '',
+    closeForm: true,
   };
 
   async componentDidMount() {
     try {
       const queryParams = {
-        type: "normal",
+        type: 'normal',
       };
       const {data} = await getTodos(queryParams);
       this.setState({todos: data});
@@ -40,12 +43,31 @@ class Todos extends Component {
     this.setState({currentDeadline: input.value});
   };
 
+  handleTodoClick = (todoId) => {
+    this.setState({selectedId: todoId, closeForm: false});
+  };
+
+  handleCloseForm = async () => {
+    try {
+      const originalTodos = this.state.todos;
+      const todos = [...originalTodos];
+      const index = todos.findIndex(
+        (todo) => todo._id === this.state.selectedId
+      );
+      const {data} = await getTodoById(this.state.selectedId);
+      todos[index] = data;
+      this.setState({todos: todos, closeForm: true});
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   handleSubmit = async (event) => {
     event.preventDefault();
     const originalTodos = this.state.todos;
     try {
       const {data} = await addTodo({
-        type: "normal",
+        type: 'normal',
         task: this.state.currentTask,
         description: this.state.currentDescription,
         deadline: this.state.currentDeadline,
@@ -54,9 +76,9 @@ class Todos extends Component {
       todos.push(data);
       this.setState({
         todos,
-        currentTask: "",
-        currentDescription: "",
-        currentDeadline: "",
+        currentTask: '',
+        currentDescription: '',
+        currentDeadline: '',
       });
     } catch (error) {
       console.log(error);

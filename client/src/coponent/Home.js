@@ -1,5 +1,5 @@
 import React from 'react';
-import TodoForm from './TodoNorForm';
+import TodoNorForm from './TodoNorForm';
 import '../css/Home.css';
 import Todos from '../Todos';
 import moment from 'moment';
@@ -13,9 +13,10 @@ class Home extends Todos {
     currentDescription: '',
     currentDeadline: '',
     selectedId: '',
+    closeForm: true,
   };
   render() {
-    const {todos} = this.state;
+    const {todos, selectedId} = this.state;
     return (
       <div className="App" style={{marginTop: '50px'}}>
         <Paper
@@ -26,7 +27,7 @@ class Home extends Todos {
           <div className="heading">TodoList</div>
           <form
             onSubmit={this.handleSubmit}
-            className="flex flex_column"
+            className="flex flex_column form-add"
             style={{margin: '15px 0'}}
           >
             <input
@@ -58,7 +59,7 @@ class Home extends Todos {
               Add Todo
             </button>
           </form>
-          <div>
+          <div style={{gap: '5px'}}>
             {todos.map((todo) => (
               <Paper key={todo._id} className="flex todo_container">
                 <Checkbox
@@ -67,7 +68,10 @@ class Home extends Todos {
                   onClick={() => this.handleUpdate(todo._id)}
                   color="primary"
                 />
-                <div onClick={() => this.handleTodoClick(todo._id)}>
+                <div
+                  onClick={() => this.handleTodoClick(todo._id)}
+                  style={{marginTop: '5px'}}
+                >
                   <div
                     className={
                       todo.completed ? 'todo line_through task' : 'todo task'
@@ -82,7 +86,10 @@ class Home extends Todos {
                         : 'todo description'
                     }
                   >
-                    Description: {todo.description}
+                    Description:{' '}
+                    {todo.description && todo.description.length > 20
+                      ? `${todo.description.substring(0, 10)}...`
+                      : todo.description || 'Không có'}
                   </div>
                   <div
                     className={
@@ -94,38 +101,15 @@ class Home extends Todos {
                     <CalendarToday
                       style={{fontSize: '15px', margin: '0px 5px 5px 0px'}}
                     />
-                    {moment(todo.deadline).format('hh:mm DD MMM')}
+                    {moment(todo.deadline).format('HH:mm DD MMM')}
                   </div>
-                  {this.state.selectedId === todo._id ? (
-                    // <div className="form-overlay">
-                    //   <form className="task-form">
-                    //     <div className="heading">Login</div>
-                    //     <input />
-                    //     <input />
-                    //     <input />
-                    //     <div className="button-container">
-                    //       <button
-                    //         className="login-button"
-                    //         type="submit"
-                    //         variant="outlined"
-                    //       >
-                    //         Lấy dữ liệu
-                    //       </button>
-                    //       <button
-                    //         className="close-button"
-                    //         onClick={this.handleHideForm}
-                    //       >
-                    //         Đóng
-                    //       </button>
-                    //     </div>{' '}
-                    //   </form>
-                    // </div>
-                    <TodoForm />
-                  ) : (
-                    <></>
-                  )}
                 </div>
-
+                {!this.state.closeForm && (
+                  <TodoNorForm
+                    selectedId={selectedId}
+                    close={this.handleCloseForm}
+                  />
+                )}
                 <IconButton
                   onClick={() => this.handleDelete(todo._id)}
                   color="secondary"
