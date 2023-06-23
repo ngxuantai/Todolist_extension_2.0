@@ -1,16 +1,16 @@
-const Link = require("../model/link");
-const Todo = require("../model/todos");
-const puppeteer = require("puppeteer");
-const axios = require("axios");
-const moment = require("moment");
+const Link = require('../model/link');
+const Todo = require('../model/todos');
+const puppeteer = require('puppeteer');
+const axios = require('axios');
+const moment = require('moment');
 const fs = require('fs');
-const { promisify } = require('util');
+const {promisify} = require('util');
 
-const filePath = "calendar.ics";
+const filePath = 'calendar.ics';
 const readFileAsync = promisify(fs.readFile);
 
 function parseICalData(icsData) {
-  const lines = icsData.split("\n");
+  const lines = icsData.split('\n');
 
   const Todos = [];
   let currentTodo = {};
@@ -18,24 +18,24 @@ function parseICalData(icsData) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trim();
 
-    if (line.startsWith("BEGIN:VEVENT")) {
+    if (line.startsWith('BEGIN:VEVENT')) {
       currentTodo = {};
-    } else if (line.startsWith("END:VEVENT")) {
+    } else if (line.startsWith('END:VEVENT')) {
       Todos.push(currentTodo);
-    } else if (line.startsWith("SUMMARY:")) {
-      currentTodo.task = line.substring("SUMMARY:".length);
-    } else if (line.startsWith("DESCRIPTION:")) {
-      let description = line.substring("DESCRIPTION:".length);
+    } else if (line.startsWith('SUMMARY:')) {
+      currentTodo.task = line.substring('SUMMARY:'.length);
+    } else if (line.startsWith('DESCRIPTION:')) {
+      let description = line.substring('DESCRIPTION:'.length);
       i++;
-      while (!lines[i].startsWith("CLASS:")) {
+      while (!lines[i].startsWith('CLASS:')) {
         description += lines[i].trim();
         i++;
       }
       currentTodo.description = formatDescription(description);
-    } else if (line.startsWith("CATEGORIES:")) {
-      currentTodo.category = line.substring("CATEGORIES:".length);
-    } else if (line.startsWith("DTEND:")) {
-      currentTodo.deadline = line.substring("DTEND:".length);
+    } else if (line.startsWith('CATEGORIES:')) {
+      currentTodo.category = line.substring('CATEGORIES:'.length);
+    } else if (line.startsWith('DTEND:')) {
+      currentTodo.deadline = line.substring('DTEND:'.length);
     }
   }
 
@@ -54,48 +54,72 @@ function formatDescription(description) {
   return description;
 }
 
-getTodosFromUrl = async (url) => {
+async function getTodosFromUrl(url) {
   let Todos = [];
+  let success = false;
+  let promises = [];
   axios
-    .get(url, { responseType: 'stream' })
-    .then(response => {
+    .get(url, {responseType: 'stream'})
+    .then((response) => {
       response.data.pipe(fs.createWriteStream(filePath));
-      console.log("Đã tải tệp .ics thành công");
+      console.log('Đã tải tệp .ics thành công');
       readFileAsync(filePath, 'utf8')
-      .then(data => {
-        Todos = parseICalData(data);
-        // In danh sách todos
-        Todos.forEach(async (todo) => {
-          // console.log("Task:", todo.task);
-          // console.log("Description:", todo.description);
-          // console.log("Category:", todo.category);
-          const deadline = moment(todo.deadline, "YYYYMMDDTHHmmssZ").format("YYYY-MM-DDTHH:mm:ss.SSSZ");
-          // console.log("Deadline:", todo.deadline.trim());
-          // console.log("Deadline:", deadline);
-          // console.log(typeof todo.deadline);
-          // console.log("---");
-          try {
-            await new Todo({
-              type: "uit",
+        .then(async (data) => {
+          Todos = parseICalData(data);
+          await Todo.deleteMany({type: 'uit'});
+          // In danh sách todos
+          Todos.forEach(async (todo) => {
+            // console.log("Task:", todo.task);
+            // console.log("Description:", todo.description);
+            // console.log("Category:", todo.category);
+            const deadline = moment(todo.deadline, 'YYYYMMDDTHHmmssZ').format(
+              'YYYY-MM-DDTHH:mm:ss.SSSZ'
+            );
+            // console.log("Deadline:", todo.deadline.trim());
+            // console.log("Deadline:", deadline);
+            // console.log(typeof todo.deadline);
+            // console.log("---");
+            const promise = new Todo({
+              type: 'uit',
               task: todo.task,
-              description: todo.description.toString() || " ",
+              description: todo.description.toString() || ' ',
               category: todo.category,
               deadline: deadline,
             }).save();
-          } catch (error) {
-            console.log(error);
-          }
+            promises.push(promise); // Thêm promise vào mảng
+            // try {
+            //   await new Todo({
+            //     type: 'uit',
+            //     task: todo.task,
+            //     description: todo.description.toString() || ' ',
+            //     category: todo.category,
+            //     deadline: deadline,
+            //   }).save();
+            // } catch (error) {
+            //   console.log(error);
+            // }
+          });
+          Promise.all(promises)
+            .then(() => {
+              // Tất cả các promise đã hoàn thành
+              if (promises.length === Todos.length) {
+                success = true;
+              }
+              console.log('Tất cả các todo đã được lưu thành công.');
+            })
+            .catch((error) => {
+              console.log('Đã xảy ra lỗi khi lưu todo:', error);
+            });
+        })
+        .catch((err) => {
+          console.error('Đã xảy ra lỗi khi đọc tệp .ics:', err);
         });
-        return Todos;
-      })
-      .catch(err => {
-        console.error("Đã xảy ra lỗi khi đọc tệp .ics:", err);
-      });
     })
     .catch((error) => {
       console.error(error);
     });
-};
+  return success;
+}
 
 const getData = async (link) => {
   // const browser = await puppeteer.launch({
@@ -189,104 +213,112 @@ const getData = async (link) => {
   // }
   const browser = await puppeteer.launch({
     headless: true,
-    args: ["--disable-web-security", "--disable-features=IsolateOrigins"],
+    args: ['--disable-web-security', '--disable-features=IsolateOrigins'],
   });
   const page = await browser.newPage();
-  
+
   try {
-    await page.goto("https://courses.uit.edu.vn/login/index.php");
-  
-    await page.type("#username", link.username);
-    await page.type("#password", link.password);
-    await Promise.all([
-      page.click("#loginbtn"),
-      page.waitForNavigation()
-    ]);
-  
+    await page.goto('https://courses.uit.edu.vn/login/index.php');
+
+    await page.type('#username', link.username);
+    await page.type('#password', link.password);
+    await Promise.all([page.click('#loginbtn'), page.waitForNavigation()]);
+
     const isErrorMessageDisplayed = await page.evaluate(() => {
-      const div = document.querySelector('div.alert.alert-danger[role="alert"]');
+      const div = document.querySelector(
+        'div.alert.alert-danger[role="alert"]'
+      );
       return div !== null;
     });
-  
+
     if (isErrorMessageDisplayed) {
-      console.log("Đăng nhập sai, xin vui lòng thử lại");
-      return "fail";
+      console.log('Đăng nhập sai, xin vui lòng thử lại');
+      return 'login-fail';
     }
-  
+
     // Đi tới trang chứa lịch
     await Promise.all([
-      page.waitForSelector("span.current"),
+      page.waitForSelector('span.current'),
       page.evaluate(() => {
-        const link = document.querySelector("span.current a");
+        const link = document.querySelector('span.current a');
         link.click();
       }),
-      page.waitForNavigation()
+      page.waitForNavigation(),
     ]);
-  
-    const btnSecondarys = await page.$$eval(".btn.btn-secondary", (buttons) =>
+
+    const btnSecondarys = await page.$$eval('.btn.btn-secondary', (buttons) =>
       buttons.map((button) => button.textContent)
     );
-  
-    const exCalenBtnId = btnSecondarys.findIndex((text) => text === "Xuất lịch biểu");
+
+    const exCalenBtnId = btnSecondarys.findIndex(
+      (text) => text === 'Xuất lịch biểu'
+    );
     if (exCalenBtnId !== -1) {
-      const exCalenBtn = await page.$$(".btn.btn-secondary");
+      const exCalenBtn = await page.$$('.btn.btn-secondary');
       await Promise.all([
         exCalenBtn[exCalenBtnId].click(),
-        page.waitForNavigation()
+        page.waitForNavigation(),
       ]);
     } else {
-      console.log("Không tìm thấy button Xuất lịch biểu");
+      console.log('Không tìm thấy button Xuất lịch biểu');
     }
-  
+
     // Chọn radio Tất cả sự kiện
-    const radioInputs = await page.$$("input.form-check-input");
+    const radioInputs = await page.$$('input.form-check-input');
     for (const input of radioInputs) {
       const value = await page.evaluate((el) => el.value, input);
-      if (value === "all" || value === "recentupcoming") {
+      if (value === 'all' || value === 'recentupcoming') {
         await input.click();
       }
     }
-  
+
     // Click nút Xuất
-    const submitInputs = await page.$$eval(".btn.btn-primary", (inputs) =>
+    const submitInputs = await page.$$eval('.btn.btn-primary', (inputs) =>
       inputs.map((input) => input.value)
     );
-    const subInputId = submitInputs.findIndex((text) => text === "Lấy địa chỉ mạng của lịch");
+    const subInputId = submitInputs.findIndex(
+      (text) => text === 'Lấy địa chỉ mạng của lịch'
+    );
     if (subInputId !== -1) {
-      const subInput = await page.$$(".btn.btn-primary");
+      const subInput = await page.$$('.btn.btn-primary');
       await Promise.all([
         subInput[subInputId].click(),
-        page.waitForNavigation()
+        page.waitForNavigation(),
       ]);
     }
-  
+
     const content = await page.evaluate(() => {
-      const div = document.querySelector(".generalbox.calendarurl");
+      const div = document.querySelector('.generalbox.calendarurl');
       return div.textContent;
     });
-    const url = content.substring("URL Lịch: ".length);
-    getTodosFromUrl(url);
-    // console.log(url);
-    return "success";
+    const url = content.substring('URL Lịch: '.length);
+    const success = getTodosFromUrl(url);
+    if (success) {
+      return 'success';
+    }
   } catch (error) {
     console.log(error);
-    return "fail";
+    return 'fail';
   } finally {
     await browser.close();
-  }  
+  }
 };
 
 exports.postLink = async (req, res) => {
   try {
     const link = req.body;
     const result = await getData(link);
-    // if (result === "success") {
-    //   await link.save();
-    // }
-    // res.send({data: result});
-    res.send({data});
+    if (result === 'success') {
+      console.log('success');
+      await Link(link).save();
+    }
+    return res.json({
+      data: {
+        result: result,
+      },
+    });
   } catch (error) {
-    res.send(error);
+    res.status(500).json({message: 'Internal server error'});
   }
 };
 
@@ -302,7 +334,7 @@ exports.getLink = async (req, res) => {
 exports.deleteLink = async (req, res) => {
   try {
     await Link.deleteMany({});
-    res.send({data: "success"});
+    res.send({data: 'success'});
   } catch (error) {
     res.send(error);
   }

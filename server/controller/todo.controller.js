@@ -1,4 +1,4 @@
-const Todo = require("../model/todos");
+const Todo = require('../model/todos');
 
 exports.postTodo = async (req, res) => {
   try {
@@ -23,6 +23,15 @@ exports.getTodos = async (req, res) => {
   }
 };
 
+exports.getTodoById = async (req, res) => {
+  try {
+    const todo = await Todo.findById(req.params.id);
+    res.send(todo);
+  } catch (error) {
+    res.send(error);
+  }
+};
+
 exports.updateTodo = async (req, res) => {
   try {
     const todo = await Todo.findOneAndUpdate({_id: req.params.id}, req.body, {
@@ -37,6 +46,16 @@ exports.updateTodo = async (req, res) => {
 exports.deleteTodo = async (req, res) => {
   try {
     const todo = await Todo.findByIdAndDelete(req.params.id);
+    res.send(todo);
+  } catch (error) {
+    res.send(error);
+  }
+};
+
+exports.deleteTodoByType = async (req, res) => {
+  try {
+    const {type} = req.query;
+    const todo = await Todo.deleteMany({type: type});
     res.send(todo);
   } catch (error) {
     res.send(error);

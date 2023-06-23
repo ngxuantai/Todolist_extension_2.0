@@ -1,32 +1,34 @@
-import React from "react";
-import "../css/Home.css";
-import Todos from "../Todos";
-import moment from "moment";
-import {Paper, Checkbox, IconButton} from "@material-ui/core";
-import {Delete, CalendarToday} from "@material-ui/icons";
-
+import React from 'react';
+import TodoNorForm from './TodoNorForm';
+import '../css/Home.css';
+import Todos from '../Todos';
+import moment from 'moment';
+import {Paper, Checkbox, IconButton} from '@material-ui/core';
+import {Delete, CalendarToday} from '@material-ui/icons';
 
 class Home extends Todos {
   state = {
     todos: [],
-    currentTask: "",
-    currentDescription: "",
-    currentDeadline: "",
+    currentTask: '',
+    currentDescription: '',
+    currentDeadline: '',
+    selectedId: '',
+    closeForm: true,
   };
   render() {
-    const {todos} = this.state;
+    const {todos, selectedId} = this.state;
     return (
-      <div className="App" style={{marginTop: "50px"}}>
+      <div className="App" style={{marginTop: '50px'}}>
         <Paper
           elevation={10}
           className="home-container"
-          style={{backgroundColor: "lightgrey"}}
+          style={{backgroundColor: 'lightgrey'}}
         >
           <div className="heading">TodoList</div>
           <form
             onSubmit={this.handleSubmit}
-            className="flex flex_column"
-            style={{margin: "15px 0"}}
+            className="flex flex_column form-add"
+            style={{margin: '15px 0'}}
           >
             <input
               value={this.state.currentTask}
@@ -51,13 +53,13 @@ class Home extends Todos {
             <button
               className="addbtn"
               variant="outlined"
-              style={{margin: "8px", backgroundColor: "white"}}
+              style={{margin: '8px', backgroundColor: 'white'}}
               type="submit"
             >
               Add Todo
             </button>
           </form>
-          <div className="scroll-container">
+          <div style={{gap: '5px'}}>
             {todos.map((todo) => (
               <Paper key={todo._id} className="flex todo_container">
                 <Checkbox
@@ -66,10 +68,13 @@ class Home extends Todos {
                   onClick={() => this.handleUpdate(todo._id)}
                   color="primary"
                 />
-                <div>
+                <div
+                  onClick={() => this.handleTodoClick(todo._id)}
+                  style={{marginTop: '5px'}}
+                >
                   <div
                     className={
-                      todo.completed ? "todo line_through task" : "todo task"
+                      todo.completed ? 'todo line_through task' : 'todo task'
                     }
                   >
                     {todo.task}
@@ -77,29 +82,39 @@ class Home extends Todos {
                   <div
                     className={
                       todo.completed
-                        ? "todo line_through description"
-                        : "todo description"
+                        ? 'todo line_through description'
+                        : 'todo description'
                     }
                   >
-                    Description: {todo.description}
+                    Description:{' '}
+                    {todo.description && todo.description.length > 20
+                      ? `${todo.description.substring(0, 10)}...`
+                      : todo.description || 'Không có'}
                   </div>
                   <div
                     className={
                       todo.completed
-                        ? "todo line_through deadline"
-                        : "todo deadline"
+                        ? 'todo line_through deadline'
+                        : 'todo deadline'
                     }
-                  >      
-                    <CalendarToday style={{fontSize : '15px', margin: '0px 5px 5px 0px'}}/>   
-                    {moment(todo.deadline).format("hh:mm DD MMM")}
+                  >
+                    <CalendarToday
+                      style={{fontSize: '15px', margin: '0px 5px 5px 0px'}}
+                    />
+                    {moment(todo.deadline).format('HH:mm DD MMM')}
                   </div>
                 </div>
-
+                {!this.state.closeForm && (
+                  <TodoNorForm
+                    selectedId={selectedId}
+                    close={this.handleCloseForm}
+                  />
+                )}
                 <IconButton
                   onClick={() => this.handleDelete(todo._id)}
                   color="secondary"                  
                 >
-                  <Delete/>
+                  <Delete />
                 </IconButton>
               </Paper>
             ))}
