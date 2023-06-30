@@ -18,55 +18,65 @@ class Home extends Todos {
   render() {
     const {todos, selectedId} = this.state;
     return (
-      <div className="App" style={{marginTop: '50px'}}>
+      <div className='App' style={{marginTop: '50px'}}>
         <Paper
           elevation={10}
-          className="home-container"
+          className='home-container'
           style={{backgroundColor: 'lightgrey'}}
         >
-          <div className="heading">TodoList</div>
+          <div className='heading'>TodoList</div>
           <form
             onSubmit={this.handleSubmit}
-            className="flex flex_column form-add"
-            style={{margin: '15px 0'}}
+            className='flex flex_column form-add'
+            style={{marginBottom: '4px'}}
           >
             <input
               value={this.state.currentTask}
               required={true}
               onChange={this.handleChangeTask}
-              placeholder="Add Todo"
+              placeholder='Add Todo'
             />
             <input
               value={this.state.currentDescription}
               required={true}
               onChange={this.handleChangeDes}
-              placeholder="Add description"
+              placeholder='Add description'
             />
             <input
-              id="datetime-local"
-              label="Deadline"
-              type="datetime-local"
+              id='datetime-local'
+              label='Deadline'
+              type='datetime-local'
               required={true}
               value={this.state.currentDeadline}
               onChange={this.handleChangeDeadline}
             />
             <button
-              className="addbtn"
-              variant="outlined"
+              className='addbtn'
+              variant='outlined'
               style={{margin: '8px', backgroundColor: 'white'}}
-              type="submit"
+              type='submit'
             >
               Add Todo
             </button>
           </form>
-          <div style={{gap: '5px'}}>
+          <div
+            className='scroll-container'
+            style={{
+              overflow: 'auto',
+              maxHeight: '246px',
+            }}
+          >
             {todos.map((todo) => (
-              <Paper key={todo._id} className="flex todo_container">
+              <Paper
+                key={todo._id}
+                className='flex todo_container'
+                style={{marginBottom: '5px'}}
+              >
                 <Checkbox
-                  className="checkbox"
+                  className='checkbox'
                   checked={todo.completed}
                   onClick={() => this.handleUpdate(todo._id)}
-                  color="primary"
+                  color='primary'
                 />
                 <div
                   onClick={() => this.handleTodoClick(todo._id)}
@@ -112,7 +122,7 @@ class Home extends Todos {
                 )}
                 <IconButton
                   onClick={() => this.handleDelete(todo._id)}
-                  color="secondary"
+                  color='secondary'
                 >
                   <Delete />
                 </IconButton>

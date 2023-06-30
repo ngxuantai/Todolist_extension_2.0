@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {getLink, addLink} from './servicces/linkService';
+import {getLink, addLink, refreshTodos} from './servicces/linkService';
 import {
   getTodos,
   addTodo,
@@ -23,6 +23,7 @@ class UitTodos extends Component {
     description: '',
     deadline: '',
     category: '',
+    isRefresh: false,
   };
 
   async componentDidMount() {
@@ -62,6 +63,32 @@ class UitTodos extends Component {
     }));
   };
 
+  handleRefreshTodos = async () => {
+    this.setState({isRefresh: true});
+    try {
+      const user = await getLink();
+      console.log(user.data.data);
+      const {data} = await refreshTodos({
+        username: user.data.data.username,
+        password: user.data.data.password,
+      });
+      if (data.data.result === 'success') {
+        try {
+          this.setState({isRefresh: false});
+          const queryParams = {
+            type: 'uit',
+          };
+          const {data} = await getTodos(queryParams);
+          console.log(data);
+          this.setState({todos: data});
+          console.log(this.state.todos);
+        } catch (error) {
+          console.log(error);
+        }
+      }
+    } catch (error) {}
+  };
+
   handleGetTodo = async (todoId) => {
     try {
       const {data} = await getTodoById(todoId);
@@ -76,7 +103,9 @@ class UitTodos extends Component {
         category: data.category,
         completed: data.completed,
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   handleSubmit = async (event) => {
@@ -87,6 +116,7 @@ class UitTodos extends Component {
         username: this.state.username,
         password: this.state.password,
       });
+      console.log(data);
       if (data.data.result === 'login-fail') {
         this.setState({getDataForm: true, loginStatus: false, loading: false});
       }
@@ -96,10 +126,8 @@ class UitTodos extends Component {
           const queryParams = {
             type: 'uit',
           };
-          console.log(queryParams);
           const {data} = await getTodos(queryParams);
           this.setState({todos: data});
-          console.log(data);
         } catch (error) {
           console.log(error);
         }
