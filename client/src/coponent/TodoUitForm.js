@@ -58,7 +58,7 @@ class TodoUitForm extends PureComponent {
     const {task, description, deadline, category} = this.state;
 
     return (
-      <div className='form-overlay'>
+      <div className='form-overlay-detail'>
         <form className='task-form' onSubmit={this.handleClose}>
           <input className='inputTodoForm' value={task || ''} readOnly={true} />
           <input

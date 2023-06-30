@@ -5,6 +5,7 @@ const axios = require('axios');
 const moment = require('moment');
 const fs = require('fs');
 const {promisify} = require('util');
+const {type} = require('os');
 
 const filePath = 'calendar.ics';
 const readFileAsync = promisify(fs.readFile);
@@ -54,163 +55,42 @@ function formatDescription(description) {
   return description;
 }
 
-async function getTodosFromUrl(url) {
-  let Todos = [];
-  let success = false;
-  let promises = [];
-  axios
-    .get(url, {responseType: 'stream'})
-    .then((response) => {
-      response.data.pipe(fs.createWriteStream(filePath));
-      console.log('Đã tải tệp .ics thành công');
-      readFileAsync(filePath, 'utf8')
-        .then(async (data) => {
-          Todos = parseICalData(data);
-          await Todo.deleteMany({type: 'uit'});
-          // In danh sách todos
-          Todos.forEach(async (todo) => {
-            // console.log("Task:", todo.task);
-            // console.log("Description:", todo.description);
-            // console.log("Category:", todo.category);
-            const deadline = moment(todo.deadline, 'YYYYMMDDTHHmmssZ').format(
-              'YYYY-MM-DDTHH:mm:ss.SSSZ'
-            );
-            // console.log("Deadline:", todo.deadline.trim());
-            // console.log("Deadline:", deadline);
-            // console.log(typeof todo.deadline);
-            // console.log("---");
-            const promise = new Todo({
-              type: 'uit',
-              task: todo.task,
-              description: todo.description.toString() || ' ',
-              category: todo.category,
-              deadline: deadline,
-            }).save();
-            promises.push(promise); // Thêm promise vào mảng
-            // try {
-            //   await new Todo({
-            //     type: 'uit',
-            //     task: todo.task,
-            //     description: todo.description.toString() || ' ',
-            //     category: todo.category,
-            //     deadline: deadline,
-            //   }).save();
-            // } catch (error) {
-            //   console.log(error);
-            // }
-          });
-          Promise.all(promises)
-            .then(() => {
-              // Tất cả các promise đã hoàn thành
-              if (promises.length === Todos.length) {
-                success = true;
-              }
-              console.log('Tất cả các todo đã được lưu thành công.');
-            })
-            .catch((error) => {
-              console.log('Đã xảy ra lỗi khi lưu todo:', error);
-            });
-        })
-        .catch((err) => {
-          console.error('Đã xảy ra lỗi khi đọc tệp .ics:', err);
-        });
-    })
-    .catch((error) => {
-      console.error(error);
-    });
-  return success;
-}
+const getTodosFromUrl = async (url) => {
+  try {
+    const response = await axios.get(url, {responseType: 'stream'});
+    await response.data.pipe(fs.createWriteStream(filePath));
+    console.log('Đã tải tệp .ics thành công');
+
+    const data = await readFileAsync(filePath, 'utf8');
+    const Todos = parseICalData(data);
+
+    await Todo.deleteMany({type: 'uit'});
+
+    for (const todo of Todos) {
+      const deadline = moment(todo.deadline, 'YYYYMMDDTHHmmssZ').format(
+        'YYYY-MM-DDTHH:mm:ss.SSSZ'
+      );
+      await new Todo({
+        type: 'uit',
+        task: todo.task,
+        description: todo.description.toString() || ' ',
+        category: todo.category,
+        deadline: deadline,
+      }).save();
+      console.log('Lưu thành công');
+    }
+
+    console.log('Tất cả các todo đã được lưu thành công.');
+    // xóa file
+    fs.unlinkSync(filePath);
+    return true;
+  } catch (error) {
+    console.error('Đã xảy ra lỗi:', error);
+    return false;
+  }
+};
 
 const getData = async (link) => {
-  // const browser = await puppeteer.launch({
-  //   headless: true,
-  //   args: ["--disable-web-security", "--disable-features=IsolateOrigins"],
-  // });
-  // const page = await browser.newPage();
-
-  // try {
-  //   await page.goto("https://courses.uit.edu.vn/login/index.php");
-
-  //   await page.type("#username", link.username);
-  //   await page.type("#password", link.password);
-  //   await page.click("#loginbtn");
-
-  //   await page.waitForNavigation();
-
-  //   const isErrorMessageDisplayed = await page.evaluate(() => {
-  //     const div = document.querySelector(
-  //       'div.alert.alert-danger[role="alert"]'
-  //     );
-  //     return div !== null;
-  //   });
-
-  //   if (isErrorMessageDisplayed) {
-  //     console.log("Đăng nhập sai, xin vui lòng thử lại");
-  //     return "fail";
-  //   } else {
-  //     // Đi tới trang chứa lịch
-  //     await page.waitForSelector("span.current");
-  //     await page.evaluate(() => {
-  //       const link = document.querySelector("span.current a");
-  //       link.click();
-  //     });
-  //     await page.waitForNavigation();
-  //     const btnSecondarys = await page.$$eval(
-  //       ".btn.btn-secondary",
-  //       (btnSecondarys) => {
-  //         return btnSecondarys.map((button) => button.textContent);
-  //       }
-  //     );
-  //     const exCalenBtnId = btnSecondarys.findIndex(
-  //       (text) => text === "Xuất lịch biểu"
-  //     );
-  //     if (exCalenBtnId !== -1) {
-  //       const exCalenBtn = await page.$$(".btn.btn-secondary");
-  //       await exCalenBtn[exCalenBtnId].click();
-  //       await page.waitForNavigation();
-  //     } else {
-  //       console.log("Không tìm thấy button Xuất lịch biểu");
-  //     }
-  //     // Chọn radio Tất cả sự kiện
-  //     const radioInputs = await page.$$("input.form-check-input");
-  //     for (const input of radioInputs) {
-  //       const value = await page.evaluate((el) => el.value, input);
-  //       if (value === "all") {
-  //         await input.click();
-  //       }
-  //       if (value === "recentupcoming") {
-  //         await input.click();
-  //       }
-  //     }
-  //     // Click nút Xuất
-  //     const submitInputs = await page.$$eval(
-  //       ".btn.btn-primary",
-  //       (submitInputs) => {
-  //         return submitInputs.map((input) => input.value);
-  //       }
-  //     );
-  //     const subInputId = submitInputs.findIndex(
-  //       (text) => text === "Lấy địa chỉ mạng của lịch"
-  //     );
-  //     if (subInputId !== -1) {
-  //       const subInput = await page.$$(".btn.btn-primary");
-  //       await subInput[subInputId].click();
-  //       await page.waitForNavigation();
-  //     }
-  //     const content = await page.evaluate(() => {
-  //       const div = document.querySelector(".generalbox.calendarurl");
-  //       return div.textContent;
-  //     });
-  //     const url = content.substring("URL Lịch: ".length);
-  //     getTodosFromUrl(url);
-  //     return "success";
-  //   }
-  // } catch (error) {
-  //   console.log(error);
-  //   return "fail";
-  // } finally {
-  //   await browser.close();
-  // }
   const browser = await puppeteer.launch({
     headless: true,
     args: ['--disable-web-security', '--disable-features=IsolateOrigins'],
@@ -292,10 +172,220 @@ const getData = async (link) => {
       return div.textContent;
     });
     const url = content.substring('URL Lịch: '.length);
-    const success = getTodosFromUrl(url);
+    // const success = getTodosFromUrl(url);
+    const success = await new Promise((resolve) => {
+      getTodosFromUrl(url)
+        .then((result) => resolve(result))
+        .catch((error) => {
+          console.error('Error in getTodosFromUrl:', error);
+          resolve(false);
+        });
+    });
     if (success) {
       return 'success';
+    } else return 'fail';
+  } catch (error) {
+    console.log(error);
+    return 'fail';
+  } finally {
+    await browser.close();
+  }
+};
+
+const updateTodosFromUrl = async (url) => {
+  try {
+    const response = await axios.get(url, {responseType: 'stream'});
+    await response.data.pipe(fs.createWriteStream(filePath));
+    console.log('Đã tải tệp .ics thành công');
+
+    const data = await readFileAsync(filePath, 'utf8');
+    const Todos = parseICalData(data);
+
+    // await Todo.deleteMany({type: 'uit'});
+
+    // for (const todo of Todos) {
+    //   const deadline = moment(todo.deadline, 'YYYYMMDDTHHmmssZ').format(
+    //     'YYYY-MM-DDTHH:mm:ss.SSSZ'
+    //   );
+    //   await new Todo({
+    //     type: 'uit',
+    //     task: todo.task,
+    //     description: todo.description.toString() || ' ',
+    //     category: todo.category,
+    //     deadline: deadline,
+    //   }).save();
+    //   console.log('Lưu thành công');
+    // }
+
+    // cách 1
+    // for (const todo of Todos) {
+    //   const deadline = moment(todo.deadline, 'YYYYMMDDTHHmmssZ').format(
+    //     'YYYY-MM-DDTHH:mm:ss.SSSZ'
+    //   );
+
+    //   const filter = {
+    //     type: 'uit',
+    //     task: todo.task,
+    //     category: todo.category,
+    //   };
+
+    //   const update = {
+    //     $set: {
+    //       description: todo.description.toString() || ' ',
+    //       deadline: deadline,
+    //     },
+    //     $setOnInsert: {
+    //       complete: todo.complete || false,
+    //     },
+    //   };
+
+    //   const options = {
+    //     upsert: true,
+    //     new: true,
+    //   };
+
+    //   await Todo.findOneAndUpdate(filter, update, options);
+    //   console.log('Lưu thành công');
+    // }
+
+    // cách 2
+    for (const todo of Todos) {
+      const deadline = moment(todo.deadline, 'YYYYMMDDTHHmmssZ').format(
+        'YYYY-MM-DDTHH:mm:ss.SSSZ'
+      );
+
+      const filter = {
+        type: 'uit',
+        task: todo.task,
+      };
+
+      const update = {
+        type: 'uit',
+        task: todo.task,
+        description: todo.description.toString() || ' ',
+        category: todo.category,
+        deadline: deadline,
+      };
+
+      const options = {
+        upsert: true,
+        new: true,
+        setDefaultsOnInsert: true,
+      };
+
+      const updatedTodo = await Todo.findOneAndUpdate(
+        filter,
+        update,
+        options
+      ).lean();
+
+      console.log(updatedTodo ? 'Cập nhật thành công' : 'Tạo mới thành công');
     }
+
+    console.log('Tất cả các todo đã được lưu thành công.');
+    // xóa file
+    fs.unlinkSync(filePath);
+    return true;
+  } catch (error) {
+    console.error('Đã xảy ra lỗi:', error);
+    return false;
+  }
+};
+
+const updateData = async (link) => {
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--disable-web-security', '--disable-features=IsolateOrigins'],
+  });
+  const page = await browser.newPage();
+
+  try {
+    await page.goto('https://courses.uit.edu.vn/login/index.php');
+
+    await page.type('#username', link.username);
+    await page.type('#password', link.password);
+    await Promise.all([page.click('#loginbtn'), page.waitForNavigation()]);
+
+    const isErrorMessageDisplayed = await page.evaluate(() => {
+      const div = document.querySelector(
+        'div.alert.alert-danger[role="alert"]'
+      );
+      return div !== null;
+    });
+
+    if (isErrorMessageDisplayed) {
+      console.log('Đăng nhập sai, xin vui lòng thử lại');
+      return 'login-fail';
+    }
+
+    // Đi tới trang chứa lịch
+    await Promise.all([
+      page.waitForSelector('span.current'),
+      page.evaluate(() => {
+        const link = document.querySelector('span.current a');
+        link.click();
+      }),
+      page.waitForNavigation(),
+    ]);
+
+    const btnSecondarys = await page.$$eval('.btn.btn-secondary', (buttons) =>
+      buttons.map((button) => button.textContent)
+    );
+
+    const exCalenBtnId = btnSecondarys.findIndex(
+      (text) => text === 'Xuất lịch biểu'
+    );
+    if (exCalenBtnId !== -1) {
+      const exCalenBtn = await page.$$('.btn.btn-secondary');
+      await Promise.all([
+        exCalenBtn[exCalenBtnId].click(),
+        page.waitForNavigation(),
+      ]);
+    } else {
+      console.log('Không tìm thấy button Xuất lịch biểu');
+    }
+
+    // Chọn radio Tất cả sự kiện
+    const radioInputs = await page.$$('input.form-check-input');
+    for (const input of radioInputs) {
+      const value = await page.evaluate((el) => el.value, input);
+      if (value === 'all' || value === 'recentupcoming') {
+        await input.click();
+      }
+    }
+
+    // Click nút Xuất
+    const submitInputs = await page.$$eval('.btn.btn-primary', (inputs) =>
+      inputs.map((input) => input.value)
+    );
+    const subInputId = submitInputs.findIndex(
+      (text) => text === 'Lấy địa chỉ mạng của lịch'
+    );
+    if (subInputId !== -1) {
+      const subInput = await page.$$('.btn.btn-primary');
+      await Promise.all([
+        subInput[subInputId].click(),
+        page.waitForNavigation(),
+      ]);
+    }
+
+    const content = await page.evaluate(() => {
+      const div = document.querySelector('.generalbox.calendarurl');
+      return div.textContent;
+    });
+    const url = content.substring('URL Lịch: '.length);
+    // const success = getTodosFromUrl(url);
+    const success = await new Promise((resolve) => {
+      updateTodosFromUrl(url)
+        .then((result) => resolve(result))
+        .catch((error) => {
+          console.error('Error in getTodosFromUrl:', error);
+          resolve(false);
+        });
+    });
+    if (success) {
+      return 'success';
+    } else return 'fail';
   } catch (error) {
     console.log(error);
     return 'fail';
@@ -310,6 +400,7 @@ exports.postLink = async (req, res) => {
     const result = await getData(link);
     if (result === 'success') {
       console.log('success');
+      await Link.deleteMany({});
       await Link(link).save();
     }
     return res.json({
@@ -324,9 +415,13 @@ exports.postLink = async (req, res) => {
 
 exports.getLink = async (req, res) => {
   try {
-    const links = await Link.find();
-    res.send(links);
+    const links = await Link.findOne();
+    console.log(typeof links);
+    return res.json({
+      data: links,
+    });
   } catch (error) {
+    console.log(error);
     res.send(error);
   }
 };
@@ -337,5 +432,30 @@ exports.deleteLink = async (req, res) => {
     res.send({data: 'success'});
   } catch (error) {
     res.send(error);
+  }
+};
+
+exports.refreshTodos = async (req, res) => {
+  try {
+    // const link = req.body;
+    // console.log(link.username);
+    // const result = await getData(link);
+    // return res.json({
+    //   data: result,
+    // });
+    const link = req.body;
+    const result = await updateData(link);
+    if (result === 'success') {
+      console.log('success');
+      await Link.deleteMany({});
+      await Link(link).save();
+    }
+    return res.json({
+      data: {
+        result: result,
+      },
+    });
+  } catch (error) {
+    console.log(error);
   }
 };

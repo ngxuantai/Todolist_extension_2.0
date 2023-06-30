@@ -1,6 +1,6 @@
 import React from 'react';
 import {Paper, Typography, Checkbox, IconButton} from '@material-ui/core';
-import {Delete, CalendarToday} from '@material-ui/icons';
+import {Delete, CalendarToday, Cached} from '@material-ui/icons';
 import UitTodos from '../UitTodos';
 import TodoUitForm from './TodoUitForm';
 import TodoNorForm from './TodoNorForm';
@@ -17,6 +17,7 @@ class Login extends UitTodos {
     detailForm: false,
     loginStatus: true,
     loading: false,
+    isRefresh: false,
     selectedId: '',
     task: '',
     description: '',
@@ -33,16 +34,13 @@ class Login extends UitTodos {
       loginStatus,
       loading,
       selectedId,
-      task,
-      description,
-      deadline,
-      category,
+      isRefresh,
     } = this.state;
     return (
       <div className='App' style={{marginTop: '50px'}}>
         <Paper
           elevation={10}
-          className='uit-container flex flex_column'
+          className='uit-container flex_column'
           style={{backgroundColor: 'lightgrey'}}
         >
           {getDataForm && (
@@ -90,137 +88,128 @@ class Login extends UitTodos {
               </form>
             </div>
           )}
-          {!getDataForm && (
-            <button
-              className='getdata-button'
-              style={{position: 'absolute', top: 0, right: 0}}
-              color='primary'
-              variant='outlined'
-              onClick={this.handleToggleForm}
-            >
-              Lấy dữ liệu
-            </button>
-          )}
           <div
-            className='heading'
-            style={{marginTop: '64px', marginBottom: '8px'}}
+            style={{
+              minHeight: '50px',
+              display: 'flex',
+              justifyContent: 'flex-end',
+            }}
           >
+            {!getDataForm && (
+              <>
+                <IconButton
+                  onClick={() => this.handleRefreshTodos()}
+                  title='Cập nhật TodoList'
+                >
+                  <Cached />
+                </IconButton>
+                <button
+                  className='getdata-button'
+                  color='primary'
+                  variant='outlined'
+                  onClick={this.handleToggleForm}
+                >
+                  Lấy dữ liệu
+                </button>
+              </>
+            )}
+          </div>
+          <div className='heading' style={{padding: '4px'}}>
             TodoList
           </div>
-          <div style={{gap: '5px'}}>
-            {todos.map((todo) => (
-              <Paper key={todo._id} className='flex todo_container'>
-                <Checkbox
-                  className='checkbox'
-                  checked={todo.completed}
-                  onClick={() => this.handleUpdate(todo._id)}
-                  color='primary'
-                />
-                <div
-                  onClick={() => this.handleTodoClick(todo._id)}
-                  style={{marginTop: '5px'}}
-                >
-                  <div
-                    className={
-                      todo.completed ? 'todo line_through task' : 'todo task'
-                    }
-                  >
-                    {todo.task}
-                  </div>
-                  <div
-                    className={
-                      todo.completed
-                        ? 'todo line_through category'
-                        : 'todo category'
-                    }
-                  >
-                    Mã môn: {todo.category}
-                  </div>
-                  <div
-                    className={
-                      todo.completed
-                        ? 'todo line_through description'
-                        : 'todo description'
-                    }
-                  >
-                    Description:{' '}
-                    {todo.description != ' '
-                      ? todo.description.length > 20
-                        ? `${todo.description.substring(0, 20)}...`
-                        : todo.description
-                      : 'Không có'}
-                  </div>
-                  <div
-                    className={
-                      todo.completed
-                        ? 'todo line_through deadline'
-                        : 'todo deadline'
-                    }
-                  >
-                    <CalendarToday
-                      style={{fontSize: '15px', margin: '0px 5px 5px 0px'}}
-                    />
-                    {moment(todo.deadline).format('HH:mm DD MMM')}
-                  </div>
-                </div>
-                {detailForm === true && (
-                  // <div
-                  //   className="form-overlay-detail"
-                  //   // style={{backgroundColor: 'rgba(251, 250, 250, 0.453)'}}
-                  // >
-                  //   <form
-                  //     className="task-form"
-                  //     onSubmit={this.handleCloseDetailForm}
-                  //   >
-                  //     <input
-                  //       className="inputTodoForm"
-                  //       value={task || ''}
-                  //       readOnly={true}
-                  //     />
-                  //     <input
-                  //       className="inputTodoForm"
-                  //       value={'Mã môn: ' + (category || '')}
-                  //       readOnly={true}
-                  //     />
-                  //     <textarea
-                  //       className="inputTodoForm"
-                  //       value={description == ' ' ? 'Không có' : description}
-                  //       readOnly={true}
-                  //       rows={description == ' ' ? 1 : 4}
-                  //       style={{resize: 'vertical', maxHeight: '240px'}}
-                  //     />
-                  //     <input
-                  //       className="inputTodoForm"
-                  //       id="datetime-local"
-                  //       label="Deadline"
-                  //       type="datetime-local"
-                  //       readOnly={true}
-                  //       value={deadline}
-                  //       style={{resize: 'none'}}
-                  //     />
-                  //     <div className="button-container">
-                  //       <button className="close-button" type="submit">
-                  //         Đóng
-                  //       </button>
-                  //     </div>
-                  //   </form>
-                  // </div>
-                  <TodoUitForm
-                    selectedId={selectedId}
-                    detailForm={detailForm}
-                    close={this.handleCloseDetailForm}
-                  />
-                )}
-
-                <IconButton
-                  onClick={() => this.handleDelete(todo._id)}
-                  color='secondary'
-                >
-                  <Delete />
-                </IconButton>
+          {isRefresh ? (
+            <>
+              <Paper
+                style={{
+                  height: '440px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  border: '1px solid #323232',
+                }}
+              >
+                <div className='spinner'></div>
               </Paper>
-            ))}
-          </div>
+            </>
+          ) : (
+            <div
+              className='scroll-container'
+              style={{
+                maxHeight: '440px',
+              }}
+            >
+              {todos.map((todo) => (
+                <Paper key={todo._id} className='flex todo_container'>
+                  <Checkbox
+                    className='checkbox'
+                    checked={todo.completed}
+                    onClick={() => this.handleUpdate(todo._id)}
+                    color='primary'
+                  />
+                  <div
+                    onClick={() => this.handleTodoClick(todo._id)}
+                    style={{marginTop: '5px'}}
+                  >
+                    <div
+                      className={
+                        todo.completed ? 'todo line_through task' : 'todo task'
+                      }
+                    >
+                      {todo.task}
+                    </div>
+                    <div
+                      className={
+                        todo.completed
+                          ? 'todo line_through category'
+                          : 'todo category'
+                      }
+                    >
+                      Mã môn: {todo.category}
+                    </div>
+                    <div
+                      className={
+                        todo.completed
+                          ? 'todo line_through description'
+                          : 'todo description'
+                      }
+                    >
+                      Description:{' '}
+                      {todo.description != ' '
+                        ? todo.description.length > 20
+                          ? `${todo.description.substring(0, 20)}...`
+                          : todo.description
+                        : 'Không có'}
+                    </div>
+                    <div
+                      className={
+                        todo.completed
+                          ? 'todo line_through deadline'
+                          : 'todo deadline'
+                      }
+                    >
+                      <CalendarToday
+                        style={{fontSize: '15px', margin: '0px 5px 5px 0px'}}
+                      />
+                      {moment(todo.deadline).format('HH:mm DD MMM')}
+                    </div>
+                  </div>
+                  {detailForm === true && (
+                    <TodoUitForm
+                      selectedId={selectedId}
+                      detailForm={detailForm}
+                      close={this.handleCloseDetailForm}
+                    />
+                  )}
+                  <IconButton
+                    onClick={() => this.handleDelete(todo._id)}
+                    color='secondary'
+                  >
+                    <Delete />
+                  </IconButton>
+                </Paper>
+              ))}
+            </div>
+          )}
         </Paper>
       </div>
     );
