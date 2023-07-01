@@ -1,10 +1,11 @@
 import React from 'react';
 import TodoNorForm from './TodoNorForm';
+import NotifiedForm from './NotifiedForm';
 import '../css/Home.css';
 import Todos from '../Todos';
 import moment from 'moment';
 import {Paper, Checkbox, IconButton} from '@material-ui/core';
-import {Delete, CalendarToday} from '@material-ui/icons';
+import {Delete, CalendarToday, NotificationsActive} from '@material-ui/icons';
 
 class Home extends Todos {
   state = {
@@ -14,7 +15,10 @@ class Home extends Todos {
     currentDeadline: '',
     selectedId: '',
     closeForm: true,
+    textBar: '',
+    notifiedForm: false,
   };
+
   render() {
     const {todos, selectedId} = this.state;
     return (
@@ -24,6 +28,15 @@ class Home extends Todos {
           className='home-container'
           style={{backgroundColor: 'lightgrey'}}
         >
+          <IconButton
+            style={{position: 'fixed', top: '50px', right: '0'}}
+            onClick={() => this.handleOpenNotifiedForm()}
+          >
+            <NotificationsActive />
+          </IconButton>
+          {this.state.notifiedForm && (
+            <NotifiedForm close={this.handleCloseNotifiedForm} />
+          )}
           <div className='heading'>TodoList</div>
           <form
             onSubmit={this.handleSubmit}
@@ -129,6 +142,7 @@ class Home extends Todos {
               </Paper>
             ))}
           </div>
+          <div id='snackbar'>{this.state.textBar}</div>
         </Paper>
       </div>
     );

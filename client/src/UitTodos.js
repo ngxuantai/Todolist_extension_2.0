@@ -24,6 +24,7 @@ class UitTodos extends Component {
     deadline: '',
     category: '',
     isRefresh: false,
+    textBar: '',
   };
 
   async componentDidMount() {
@@ -82,6 +83,8 @@ class UitTodos extends Component {
           console.log(data);
           this.setState({todos: data});
           console.log(this.state.todos);
+          this.setState({textBar: 'Cập nhật dữ liệu thành công'});
+          this.HideSnackbar();
         } catch (error) {
           console.log(error);
         }
@@ -121,13 +124,21 @@ class UitTodos extends Component {
         this.setState({getDataForm: true, loginStatus: false, loading: false});
       }
       if (data.data.result === 'success') {
-        this.setState({getDataForm: false, loginStatus: true, loading: false});
+        this.setState({
+          getDataForm: false,
+          loginStatus: true,
+          loading: false,
+          username: '',
+          password: '',
+        });
         try {
           const queryParams = {
             type: 'uit',
           };
           const {data} = await getTodos(queryParams);
           this.setState({todos: data});
+          this.setState({textBar: 'Lấy dữ liệu thành công'});
+          this.HideSnackbar();
         } catch (error) {
           console.log(error);
         }
@@ -166,6 +177,12 @@ class UitTodos extends Component {
   handleDelete = async (currentTodo) => {
     const originalTodos = this.state.todos;
     try {
+      const todo = await getTodoById(currentTodo);
+      if (todo.data.completed === false) {
+        this.setState({textBar: 'Không thể xóa công việc chưa hoàn thành'});
+        this.HideSnackbar();
+        return true;
+      }
       const todos = originalTodos.filter((todo) => todo._id !== currentTodo);
       this.setState({todos});
       await deleteTodo(currentTodo);
@@ -173,6 +190,16 @@ class UitTodos extends Component {
       console.log(error);
       this.setState({todos: originalTodos});
     }
+  };
+
+  HideSnackbar = () => {
+    var x = document.getElementById('snackbar');
+    x.className = 'show';
+
+    // After 3 seconds, remove the show class from DIV
+    setTimeout(function () {
+      x.className = x.className.replace('show', '');
+    }, 3000);
   };
 }
 

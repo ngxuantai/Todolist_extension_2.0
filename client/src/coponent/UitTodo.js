@@ -23,6 +23,7 @@ class Login extends UitTodos {
     description: '',
     deadline: '',
     category: '',
+    textBar: '',
   };
   render() {
     const {
@@ -97,6 +98,12 @@ class Login extends UitTodos {
           >
             {!getDataForm && (
               <>
+                {/* <IconButton
+                  onClick={() => this.handleRefreshTodos()}
+                  title='Thông báo'
+                >
+                  <NotificationsActive />
+                </IconButton> */}
                 <IconButton
                   onClick={() => this.handleRefreshTodos()}
                   title='Cập nhật TodoList'
@@ -210,6 +217,7 @@ class Login extends UitTodos {
               ))}
             </div>
           )}
+          <div id='snackbar'>{this.state.textBar}</div>
         </Paper>
       </div>
     );

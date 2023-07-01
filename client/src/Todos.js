@@ -16,6 +16,7 @@ class Todos extends Component {
     currentDeadline: '',
     selectedId: '',
     closeForm: true,
+    textBar: '',
   };
 
   async componentDidMount() {
@@ -30,6 +31,14 @@ class Todos extends Component {
       console.log(error);
     }
   }
+
+  handleOpenNotifiedForm = () => {
+    this.setState({notifiedForm: true});
+  };
+
+  handleCloseNotifiedForm = () => {
+    this.setState({notifiedForm: false});
+  };
 
   handleChangeTask = ({currentTarget: input}) => {
     this.setState({currentTask: input.value});
@@ -80,6 +89,8 @@ class Todos extends Component {
         currentDescription: '',
         currentDeadline: '',
       });
+      this.setState({textBar: 'Thêm công việc thành công'});
+      this.HideSnackbar();
     } catch (error) {
       console.log(error);
     }
@@ -103,6 +114,12 @@ class Todos extends Component {
   handleDelete = async (currentTodo) => {
     const originalTodos = this.state.todos;
     try {
+      const todo = await getTodoById(currentTodo);
+      if (todo.data.completed === false) {
+        this.setState({textBar: 'Không thể xóa công việc chưa hoàn thành'});
+        this.HideSnackbar();
+        return true;
+      }
       const todos = originalTodos.filter((todo) => todo._id !== currentTodo);
       this.setState({todos});
       await deleteTodo(currentTodo);
@@ -110,6 +127,16 @@ class Todos extends Component {
       console.log(error);
       this.setState({todos: originalTodos});
     }
+  };
+
+  HideSnackbar = () => {
+    var x = document.getElementById('snackbar');
+    x.className = 'show';
+
+    // After 3 seconds, remove the show class from DIV
+    setTimeout(function () {
+      x.className = x.className.replace('show', '');
+    }, 3000);
   };
 }
 

@@ -93,6 +93,7 @@ class TodoNorForm extends React.Component {
               type='datetime-local'
               readOnly={true}
               value={deadline}
+              style={{resize: 'none'}}
             />
             <div className='button-container'>
               <button className='close-button'>Đóng</button>
@@ -122,6 +123,7 @@ class TodoNorForm extends React.Component {
               required={true}
               value={deadline}
               onChange={this.handleChangeDeadlineTodo}
+              style={{resize: 'none'}}
             />
             <div className='button-container'>
               <button
