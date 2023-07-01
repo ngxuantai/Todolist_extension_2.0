@@ -1,5 +1,6 @@
 const Link = require('../model/link');
 const Todo = require('../model/todos');
+const Nofitied = require('../model/notified');
 const puppeteer = require('puppeteer');
 const axios = require('axios');
 const moment = require('moment');
@@ -402,6 +403,15 @@ exports.postLink = async (req, res) => {
       console.log('success');
       await Link.deleteMany({});
       await Link(link).save();
+
+      const type = 'uit';
+      await Nofitied.deleteMany({type: type});
+      const nofitied = new Nofitied({
+        type: type,
+        email: link.username + '@gm.uit.edu.vn',
+        time: 30, //để mặc định là 30 phút
+      });
+      await nofitied.save();
     }
     return res.json({
       data: {
@@ -445,11 +455,11 @@ exports.refreshTodos = async (req, res) => {
     // });
     const link = req.body;
     const result = await updateData(link);
-    if (result === 'success') {
-      console.log('success');
-      await Link.deleteMany({});
-      await Link(link).save();
-    }
+    // if (result === 'success') {
+    //   console.log('success');
+    //   await Link.deleteMany({});
+    //   await Link(link).save();
+    // }
     return res.json({
       data: {
         result: result,

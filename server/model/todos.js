@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const todoSchema = new Schema(
@@ -27,8 +27,12 @@ const todoSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    isNotified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {versionKey: false}
 );
 
-module.exports = mongoose.model("todo", todoSchema);
+module.exports = mongoose.model('todo', todoSchema);
