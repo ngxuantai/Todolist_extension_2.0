@@ -31,6 +31,14 @@ const todoSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    id_tasklist: {
+      type: String,
+      required: false,
+    },
+    id_task: {
+      type: String,
+      required: false,
+    },
   },
   {versionKey: false}
 );

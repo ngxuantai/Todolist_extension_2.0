@@ -16,7 +16,7 @@ const sendNotificationEmails = async (todosToNotify, notified) => {
     // Đặt refresh token
     oauth2Client.setCredentials({
       refresh_token:
-        '1//04R_c0ySHxiOQCgYIARAAGAQSNwF-L9Ir87g4wlm-br5YZwYx-ePEXt7091Ch8Yb5ydDgYpHPeLlWfW5I29ToP8qJUgKxW63gFo8',
+        '1//04V9xDkkIHsHoCgYIARAAGAQSNwF-L9IreRZ0OQnBglb9yTljj4COJcVEVv04st7zHbXag7KFAXkp__H5PwCflJoIvrgEaUSoF-I',
     });
 
     // Lấy thông tin công việc từ cơ sở dữ liệu
