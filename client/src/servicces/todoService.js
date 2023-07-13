@@ -21,3 +21,7 @@ export function updateTodo(id, todo) {
 export function deleteTodo(id) {
   return axois.delete(API_URL + '/todos/' + id);
 }
+
+export function deleteAllTodos(queryParams) {
+  return axois.delete(API_URL + '/todos', {params: queryParams});
+}

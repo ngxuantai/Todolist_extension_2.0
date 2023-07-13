@@ -12,6 +12,8 @@
     "axios": "^1.4.0",
     "bootstrap": "^5.2.3",
     "css-loader": "^6.8.1",
+    "dotenv": "^16.3.1",
+    "googleapis": "^122.0.0",
     "moment": "^2.29.4",
     "moment-timezone": "^0.5.43",
     "nodemon": "^2.0.22",

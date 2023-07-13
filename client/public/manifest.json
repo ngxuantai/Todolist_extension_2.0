@@ -3,6 +3,18 @@
   "name": "TodoList Extension",
   "version": "1.0.0",
   "description": "A Todo List extension",
+  "oauth2": {
+    "client_id": "455449749063-u8n0q9hjkjf2fiv3fi4e39flitdkgns3.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar",
+      "https://www.googleapis.com/auth/calendar.events",
+      "https://www.googleapis.com/auth/calendar.events.readonly",
+      "https://www.googleapis.com/auth/calendar.readonly",
+      "https://www.googleapis.com/auth/tasks",
+      "https://www.googleapis.com/auth/tasks.readonly"
+    ]
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0gq0g3MAtAzEWNTwlqwK7v/AqG8ktZtADMANEVf28Jwk6CSIHs1WZxhRIaVbODyxaA6PQJByRDhjMMF2wimzAII34Yj8M3kCJ1WpzxgRQpR0aHOrdKR85N5y+LzRL6WQOCQzWYxAi/pZG13zdi4kj14tPlC6h4Qm+dq6Hm6CR7i0dTavnWJWDGbV0vynz0Ue+sbEqXpk8LLjmjtImhYiR8LfdfJVisS9VuWoWrGlA9LbeAC0gvA5LFAFtxHvGjRrqaeIUNjzwRRgQ/gfhB/MNjDyhteSMemKg1Nx5WHXixyHc1+OI5Kroe9CS4LxwjGba9AEKBbHRKLP0yc965lQVwIDAQAB",
   "icons": {
     "16": "images/icon16.png",
     "48": "images/icon48.png",
@@ -12,5 +24,5 @@
     "default_title": "Todolist",
     "default_popup": "popup.html"
   },
-  "permissions": ["storage", "activeTab", "tabs"]
+  "permissions": ["storage", "activeTab", "tabs", "identity"]
 }

@@ -47,7 +47,7 @@ class Home extends Todos {
               value={this.state.currentTask}
               required={true}
               onChange={this.handleChangeTask}
-              placeholder='Add Todo'
+              placeholder='Add Title'
             />
             <input
               value={this.state.currentDescription}
