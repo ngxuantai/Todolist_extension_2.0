@@ -34,16 +34,56 @@ const getAccessTokenFromURL = (url) => {
   return params.get('access_token');
 };
 
+const checkAccessTokenExpiration = async (accessToken) => {
+  try {
+    const response = await fetch(
+      `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`
+    );
+    const data = await response.json();
+    console.log(data);
+
+    // Kiểm tra thông tin trong response để xác định trạng thái của accessToken
+    const expirationTime = data.expires_in;
+    const currentTime = Math.floor(Date.now() / 1000); // Thời gian hiện tại (đơn vị: giây)
+
+    return expirationTime > currentTime;
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra accessToken:', error);
+    return false;
+  }
+};
+
 const saveAccessToken = (accessToken) => {
   localStorage.setItem('accessToken', accessToken);
 };
 
-const getAccessToken = () => {
-  return localStorage.getItem('accessToken');
+const getAccessToken = async () => {
+  // return localStorage.getItem('accessToken');
+  // if (checkAccessTokenExpiration(localStorage.getItem('accessToken'))) {
+  //   return null;
+  // }
+  try {
+    const isExpired = await checkAccessTokenExpiration(
+      localStorage.getItem('accessToken')
+    );
+    if (isExpired) {
+      return null;
+    }
+    return localStorage.getItem('accessToken');
+  } catch (error) {
+    console.error('Lỗi khi kiểm tra accessToken:', error);
+  }
 };
 
 const clearAccessToken = () => {
   localStorage.removeItem('accessToken');
+};
+
+const getErrorMessage = (error) => {
+  if (error.status === 'UNAUTHENTICATED') {
+    return 'Không có quyền truy cập';
+  }
+  return 'Quá trình xảy ra lỗi';
 };
 
 const getListTasksFromCalendar = async (accessToken) => {
@@ -115,7 +155,10 @@ const getListTasksFromCalendar = async (accessToken) => {
 class GGCalendarTodos extends Component {
   state = {
     todos: [],
-    detailForm: false,
+    currentTodo: null,
+    currentTask: '',
+    currentDescription: '',
+    currentDeadline: '',
     loading: false,
     isRefresh: false,
     selectedId: '',
@@ -139,12 +182,18 @@ class GGCalendarTodos extends Component {
   }
 
   handleRefreshTodos = async () => {
-    let access_token = getAccessToken();
-    if (access_token) {
-      const todos = await getListTasksFromCalendar(access_token);
-      this.setState({todos: todos});
-    } else {
-      this.HandleGetDataFromGoogleCalendar();
+    try {
+      let access_token = await getAccessToken();
+      if (access_token !== null) {
+        const todos = await getListTasksFromCalendar(access_token);
+        this.setState({todos: todos, textBar: 'Cập nhật dữ liệu thành công'});
+        this.HideSnackbar();
+      } else {
+        console.log('chua co access token');
+        this.HandleGetDataFromGoogleCalendar();
+      }
+    } catch (error) {
+      console.error('Lỗi khi làm mới danh sách nhiệm vụ:', error);
     }
   };
 
@@ -164,11 +213,178 @@ class GGCalendarTodos extends Component {
       console.log(accessToken);
       saveAccessToken(accessToken);
       data_todos = await getListTasksFromCalendar(accessToken);
-      console.log('datatodos', data_todos);
-      this.setState({todos: data_todos});
+      if (data_todos.length > 0) {
+        console.log('datatodos', data_todos);
+        this.setState({todos: data_todos});
+        this.setState({textBar: 'Lấy dữ liệu thành công'});
+        this.HideSnackbar();
+      } else {
+        console.log('khong co data');
+        this.setState({textBar: 'Không có task trên Google Calendar'});
+        this.HideSnackbar();
+      }
     } catch (error) {
       console.log(error);
     }
+  };
+
+  handleChangeTask = ({currentTarget: input}) => {
+    this.setState({currentTask: input.value});
+  };
+
+  handleChangeDes = ({currentTarget: input}) => {
+    this.setState({currentDescription: input.value});
+  };
+
+  handleChangeDeadline = ({currentTarget: input}) => {
+    const value = input.value;
+    const deadline = value
+      ? moment(value).endOf('day').format('YYYY-MM-DDTHH:mm')
+      : '00:00';
+    this.setState({currentDeadline: deadline});
+  };
+
+  handleSubmit = async (event) => {
+    event.preventDefault();
+
+    let accessToken = await getAccessToken();
+    // authorize if not have access token
+    if (!accessToken) {
+      const redirect_url = await new Promise((resolve) => {
+        chrome.identity.launchWebAuthFlow(
+          {url: createGoogleAuthUrl(), interactive: true},
+          (redirectUrl) => {
+            resolve(redirectUrl);
+          }
+        );
+      });
+      accessToken = getAccessTokenFromURL(redirect_url);
+      saveAccessToken(accessToken);
+    }
+
+    const task = {
+      title: this.state.currentTask,
+      notes: this.state.currentDescription,
+      due: moment(this.state.currentDeadline)
+        .add(1, 'day')
+        .format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+    };
+
+    if (this.state.selectedId === '') {
+      // Add task to Google Calendar
+      const tasklist = '@default';
+      const url = `https://tasks.googleapis.com/tasks/v1/lists/${tasklist}/tasks`;
+      const init = {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(task),
+      };
+      try {
+        const response = await fetch(url, init);
+        const res_data = await response.json();
+        console.log(res_data);
+        if (res_data.error) {
+          const error = getErrorMessage(res_data.error);
+          this.setState({textBar: error});
+          this.HideSnackbar();
+        } else {
+          // Add task to database
+          const id_tasklist = res_data.selfLink.split('/')[6];
+          const {data} = await addTodo({
+            task: res_data.title,
+            description: res_data.notes,
+            deadline: moment(res_data.due)
+              .startOf('day')
+              .format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+            id_tasklist: id_tasklist,
+            type: 'ggcalendar',
+            id_task: res_data.id,
+          });
+          console.log(data);
+          this.setState({
+            todos: [...this.state.todos, data],
+            textBar: 'Thêm công việc thành công',
+            currentTask: '',
+            currentDescription: '',
+            currentDeadline: '',
+          });
+          this.HideSnackbar();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    } else {
+      const id_tasklist = this.state.currentTodo.id_tasklist;
+      const id_task = this.state.currentTodo.id_task;
+      const url = `https://tasks.googleapis.com/tasks/v1/lists/${id_tasklist}/tasks/${id_task}`;
+      const init = {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(task),
+      };
+
+      try {
+        const response = await fetch(url, init);
+        const res_data = await response.json();
+        console.log(res_data);
+        if (res_data.error) {
+          const error = getErrorMessage(res_data.error);
+          this.setState({textBar: error});
+          this.HideSnackbar();
+        } else {
+          // Update task to database
+          const {data} = await updateTodo(this.state.currentTodo._id, {
+            task: res_data.title,
+            description: res_data.notes,
+            deadline: moment(res_data.due)
+              .startOf('day')
+              .format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+            id_tasklist: id_tasklist,
+            type: 'ggcalendar',
+            id_task: res_data.id,
+          });
+          console.log(data);
+          const todos = [...this.state.todos];
+          const index = todos.findIndex(
+            (todo) => todo._id === this.state.currentTodo._id
+          );
+          todos[index] = data;
+          this.setState({
+            todos: todos,
+            textBar: 'Cập nhật công việc thành công',
+            currentTask: '',
+            currentDescription: '',
+            currentDeadline: '',
+            selectedId: '',
+            currentTodo: {},
+          });
+          this.HideSnackbar();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  };
+
+  handleTodoClick = (id) => {
+    this.setState({selectedId: id});
+    const todos = [...this.state.todos];
+    const index = todos.findIndex((todo) => todo._id === id);
+    this.setState({
+      currentTodo: todos[index],
+      currentTask: todos[index].task,
+      currentDescription: todos[index].description,
+      currentDeadline: moment(todos[index].deadline)
+        .subtract(1, 'day')
+        .endOf('day')
+        .format('YYYY-MM-DDTHH:mm'),
+    });
   };
 
   handleUpdate = async (currentId) => {
@@ -186,12 +402,13 @@ class GGCalendarTodos extends Component {
       }
       const tasklist = todos[index].id_tasklist;
       const task = todos[index].id_task;
-      const accessToken = getAccessToken();
+      const accessToken = await getAccessToken();
+      console.log(accessToken);
 
       this.setState({todos});
       await updateTodo(currentId, todos[index]);
 
-      // Update task on Google Calendar
+      // Update status of task on Google Calendar
       const url = `https://tasks.googleapis.com/tasks/v1/lists/${tasklist}/tasks/${task}`;
 
       const requestBody = {
@@ -208,9 +425,19 @@ class GGCalendarTodos extends Component {
       };
 
       try {
-        await fetch(url, init);
-        this.setState({textBar: 'Đã cập nhật công việc trên Google Calendar'});
-        this.HideSnackbar();
+        const response = await fetch(url, init);
+        const res_data = await response.json();
+        console.log(res_data);
+        if (res_data.error) {
+          const error = getErrorMessage(res_data.error);
+          this.setState({textBar: error});
+          this.HideSnackbar();
+        } else {
+          this.setState({
+            textBar: 'Đã cập nhật công việc trên Google Calendar',
+          });
+          this.HideSnackbar();
+        }
       } catch (error) {
         console.error('Error updating task:', error);
         // return null;
@@ -221,18 +448,55 @@ class GGCalendarTodos extends Component {
     }
   };
 
-  handleDelete = async (currentTodo) => {
+  handleDelete = async (id) => {
     const originalTodos = this.state.todos;
     try {
-      const todo = await getTodoById(currentTodo);
+      const todo = await getTodoById(id);
       if (todo.data.completed === false) {
         this.setState({textBar: 'Không thể xóa công việc chưa hoàn thành'});
         this.HideSnackbar();
         return true;
       }
-      const todos = originalTodos.filter((todo) => todo._id !== currentTodo);
+      const todos = originalTodos.filter((todo) => todo._id !== id);
       this.setState({todos});
-      await deleteTodo(currentTodo);
+      await deleteTodo(id);
+
+      // Delete task on Google Calendar
+      const tasklist = todo.data.id_tasklist;
+      const task = todo.data.id_task;
+      const accessToken = await getAccessToken();
+
+      const url = `https://tasks.googleapis.com/tasks/v1/lists/${tasklist}/tasks/${task}`;
+
+      const init = {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({deleted: true}),
+      };
+
+      try {
+        const response = await fetch(url, init);
+        const res_data = await response.json();
+        if (res_data.error) {
+          const error = getErrorMessage(res_data.error);
+          this.setState({textBar: error});
+          this.HideSnackbar();
+        } else {
+          this.setState({
+            textBar: 'Đã xóa công việc trên Google Calendar',
+          });
+          this.HideSnackbar();
+        }
+      } catch (error) {
+        console.error('Error deleting task:', error);
+        // return null;
+      }
+
+      // this.setState({textBar: 'Đã xóa công việc'});
+      // this.HideSnackbar();
     } catch (error) {
       console.log(error);
       this.setState({todos: originalTodos});

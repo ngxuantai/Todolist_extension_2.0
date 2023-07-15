@@ -4,9 +4,30 @@ import {Delete, CalendarToday, Cached} from '@material-ui/icons';
 import GGCalendarTodos from '../GGCalendarTodos';
 import moment from 'moment';
 
+const formatDatetime = (datetime) => {
+  const date = new Date(datetime);
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12;
+  hours = hours ? hours : 12;
+  minutes = minutes < 10 ? '0' + minutes : minutes;
+
+  const formattedDatetime = `${day}/${month}/${year} ${hours}:${minutes} ${ampm}`;
+  return formattedDatetime;
+};
+
 class GGCalendar extends GGCalendarTodos {
   state = {
     todos: [],
+    currentTodo: null,
+    currentTask: '',
+    currentDescription: '',
+    currentDeadline: '',
     detailForm: false,
     loading: false,
     isRefresh: false,
@@ -47,9 +68,43 @@ class GGCalendar extends GGCalendarTodos {
               Lấy dữ liệu
             </button>
           </div>
-          <div className='heading' style={{padding: '4px'}}>
+          {/* <div className='heading' style={{padding: '4px'}}>
             TodoList
-          </div>
+          </div> */}
+          <form
+            onSubmit={this.handleSubmit}
+            className='flex flex_column form-add'
+            style={{marginBottom: '4px'}}
+          >
+            <input
+              value={this.state.currentTask}
+              required={true}
+              onChange={this.handleChangeTask}
+              placeholder='Add Title'
+            />
+            <input
+              value={this.state.currentDescription}
+              required={true}
+              onChange={this.handleChangeDes}
+              placeholder='Add description'
+            />
+            <input
+              id='datetime-local'
+              label='Deadline'
+              type='datetime-local'
+              required={true}
+              value={this.state.currentDeadline}
+              onChange={this.handleChangeDeadline}
+            />
+            <button
+              className='addbtn'
+              variant='outlined'
+              style={{margin: '8px', backgroundColor: 'white'}}
+              type='submit'
+            >
+              {this.state.selectedId ? 'Update' : 'Add'}
+            </button>
+          </form>
           {isRefresh ? (
             <>
               <Paper
